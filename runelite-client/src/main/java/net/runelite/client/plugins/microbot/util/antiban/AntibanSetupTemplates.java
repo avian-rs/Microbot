@@ -109,7 +109,7 @@ public class AntibanSetupTemplates {
         Rs2AntibanSettings.nonLinearIntervals = true;
         Rs2AntibanSettings.profileSwitching = true;
         Rs2AntibanSettings.timeOfDayAdjust = false;
-        Rs2AntibanSettings.simulateMistakes = false;
+        Rs2AntibanSettings.simulateMistakes = true;
         Rs2AntibanSettings.naturalMouse = true;
         Rs2AntibanSettings.contextualVariability = true;
         Rs2AntibanSettings.dynamicIntensity = false;
