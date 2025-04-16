@@ -61,32 +61,34 @@ public class BloodsPlugin extends Plugin {
 
     @Subscribe
     public void onGameObjectSpawned(GameObjectSpawned event) {
+//        get(event.getTile(), null, event.getGameObject());
 
-        GameObject pohPortal = event.getGameObject();
-        ObjectComposition portalComposition = client.getObjectDefinition(pohPortal.getId());
-
-        if (portalComposition != null) {
-            if (portalComposition.getImpostorIds() != null) {
-                portalComposition = portalComposition.getImpostor();
-            }
-            String name = portalComposition.getName().toLowerCase();
-            if (name.contains("portal") && Rs2GameObject.isReachable(pohPortal)) {
-                this.pohPortal = pohPortal;
-            }
-        }
-
-        GameObject pool= event.getGameObject();
-        ObjectComposition poolComposition = client.getObjectDefinition(pool.getId());
-
-        if (poolComposition != null) {
-            if(poolComposition.getImpostorIds() != null) {
-                poolComposition = poolComposition.getImpostor();
-            }
-            String name = poolComposition.getName().toLowerCase();
-            if (name.contains("pool") && Rs2GameObject.isReachable(pool)) {
-                this.pool = pool;
-            }
-        }
+//
+//        GameObject pohPortal = event.getGameObject();
+//        ObjectComposition portalComposition = client.getObjectDefinition(pohPortal.getId());
+//
+//        if (portalComposition != null) {
+//            if (portalComposition.getImpostorIds() != null) {
+//                portalComposition = portalComposition.getImpostor();
+//            }
+//            String name = portalComposition.getName().toLowerCase();
+//            if (name.contains("portal") && Rs2GameObject.isReachable(pohPortal)) {
+//                this.pohPortal = pohPortal;
+//            }
+//        }
+//
+//        GameObject pool= event.getGameObject();
+//        ObjectComposition poolComposition = client.getObjectDefinition(pool.getId());
+//
+//        if (poolComposition != null) {
+//            if(poolComposition.getImpostorIds() != null) {
+//                poolComposition = poolComposition.getImpostor();
+//            }
+//            String name = poolComposition.getName().toLowerCase();
+//            if (name.contains("pool") && Rs2GameObject.isReachable(pool)) {
+//                this.pool = pool;
+//            }
+//        }
     }
 
     @Subscribe
