@@ -11,6 +11,7 @@ import net.runelite.client.plugins.microbot.frosty.bloods.enums.State;
 import net.runelite.client.plugins.microbot.breakhandler.BreakHandlerScript;
 import net.runelite.client.plugins.microbot.frosty.bloods.enums.Teleports;
 import net.runelite.client.plugins.microbot.util.antiban.Rs2Antiban;
+import net.runelite.client.plugins.microbot.util.antiban.Rs2AntibanSettings;
 import net.runelite.client.plugins.microbot.util.antiban.enums.Activity;
 import net.runelite.client.plugins.microbot.util.bank.Rs2Bank;
 import net.runelite.client.plugins.microbot.util.camera.Rs2Camera;
@@ -50,6 +51,7 @@ public class BloodsScript extends Script {
     public static final int inactiveBloodEssence = ItemID.BLOOD_ESSENCE_INACTIVE;
     public static final int bloodRune = ItemID.BLOODRUNE;
     public static final int colossalPouch = ItemID.RCU_POUCH_COLOSSAL;
+    public static final int runePouch = ItemID.BH_RUNE_POUCH;
 
     private static boolean repairingPouch = false;
 
@@ -70,8 +72,7 @@ public class BloodsScript extends Script {
         Rs2Antiban.resetAntibanSettings();
         Rs2Antiban.antibanSetupTemplates.applyRunecraftingSetup();
         Rs2Antiban.setActivity(Activity.CRAFTING_BLOODS_TRUE_ALTAR);
-//        Rs2Camera.setZoom(300);
-//        Rs2Camera.setPitch(369);
+
         sleepGaussian(700, 200);
         state = State.BANKING;
         Microbot.log("Script has started");
@@ -178,7 +179,6 @@ public class BloodsScript extends Script {
                 sleepGaussian(700, 200);
             }
         }
-
         if (Rs2Inventory.hasDegradedPouch()) {
             repairingPouch = true;
             Microbot.log("Found degraded pouch, withdraw rune pouch");
@@ -195,27 +195,52 @@ public class BloodsScript extends Script {
             Microbot.log("deposited rune pouch");
             Rs2Bank.closeBank();
             sleepUntil(() -> !Rs2Bank.isOpen(), 1200);
-            return;
+//            Rs2Tab.switchToInventoryTab();
         }
         if (repairingPouch) {
+            Microbot.log("Repairing Pouch ");
+        }
+        else {
+            Microbot.log("Not Repairing Pouch ");
+        }
+
+        if (repairingPouch) {
             Microbot.log("Filling pouch after repairing.");
+
             Rs2Bank.openBank();
             sleepUntil(Rs2Bank::isOpen, 1200);
-            Microbot.log("After repairing: opened bank");
-            while (!Rs2Inventory.allPouchesFull() || !Rs2Inventory.isFull() && isRunning()) {
-                Microbot.log("After repairing: in while loop");
+
+            while (Rs2Inventory.getRemainingCapacityInPouches() > 0) {
+                Microbot.log("Current remaining capacity: " + Rs2Inventory.getRemainingCapacityInPouches());
+
                 if (Rs2Bank.isOpen()) {
+                    Microbot.log("After repairing: in while loop: bank is open");
+
                     if (Rs2Inventory.contains(bloodRune)) {
+                        Microbot.log("After repairing: found blood rune, deposit");
+
                         Rs2Bank.depositAll(bloodRune);
                         sleepGaussian(500, 200);
                     }
+                    Microbot.log("After repairing: withdraw all pure essence");
                     Rs2Bank.withdrawAll(pureEss);
+
+                    Microbot.log("Before fill pouches Remaining capacity: " + Rs2Inventory.getRemainingCapacityInPouches());
+                    sleepGaussian(900, 200);
+
                     Rs2Inventory.fillPouches();
-                    sleepGaussian(700, 200);
+                    Rs2Bank.openBank();
+                    sleepUntil(Rs2Bank::isOpen, 2500);
+                    Microbot.log("After fill pouches Remaining capacity: " + Rs2Inventory.getRemainingCapacityInPouches());
                 }
+
                 if (!Rs2Inventory.isFull()) {
+                    Microbot.log("Inventory is not full in repair state");
+
                     Rs2Bank.withdrawAll(pureEss);
                     sleepUntil(Rs2Inventory::isFull);
+                    Microbot.log("Withdrew all pure essence");
+
                 }
             }
         }
@@ -223,15 +248,23 @@ public class BloodsScript extends Script {
             while (!Rs2Inventory.allPouchesFull() || !Rs2Inventory.isFull() && isRunning()) {
                 Microbot.log("Pouches are not full yet");
                 if (Rs2Bank.isOpen()) {
+                    Microbot.log("Pouches not full, bank open");
+
                     if (Rs2Inventory.contains(bloodRune)) {
                         Rs2Bank.depositAll(bloodRune);
                         sleepGaussian(500, 200);
                     }
                     Rs2Bank.withdrawAll(pureEss);
+                    Microbot.log("Pouches not fullbank open , withdraw all pure ess");
+
                     Rs2Inventory.fillPouches();
+                    Microbot.log("Pouches not full bank open, filled pouches");
+
                     sleepGaussian(700, 200);
                 }
                 if (!Rs2Inventory.isFull()) {
+                    Microbot.log("Pouches are not full yet, withdraw all pure ess");
+
                     Rs2Bank.withdrawAll(pureEss);
                     sleepUntil(Rs2Inventory::isFull);
                 }
@@ -240,6 +273,7 @@ public class BloodsScript extends Script {
 
         if (Rs2Bank.isOpen() && Rs2Inventory.allPouchesFull() && Rs2Inventory.isFull()) {
             Microbot.log("We are full, lets go");
+            Microbot.log("Remaining capacity: " + Rs2Inventory.getRemainingCapacityInPouches());
             Rs2Keyboard.keyPress(KeyEvent.VK_ESCAPE);
             sleepUntil(() -> !Rs2Bank.isOpen(), 1200);
             if (Rs2Inventory.contains(inactiveBloodEssence)) {
