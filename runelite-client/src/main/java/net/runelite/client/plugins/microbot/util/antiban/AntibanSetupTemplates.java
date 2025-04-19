@@ -1,6 +1,9 @@
 package net.runelite.client.plugins.microbot.util.antiban;
 
 import net.runelite.client.plugins.microbot.util.antiban.enums.Activity;
+import net.runelite.client.plugins.microbot.util.antiban.enums.ActivityIntensity;
+
+import static net.runelite.client.plugins.microbot.util.antiban.enums.ActivityIntensity.LOW;
 
 /**
  * The {@code AntibanSetupTemplates} class provides predefined antiban setup configurations tailored to specific
@@ -117,18 +120,23 @@ public class AntibanSetupTemplates {
         Rs2AntibanSettings.timeOfDayAdjust = false;
         Rs2AntibanSettings.simulateMistakes = true;
         Rs2AntibanSettings.naturalMouse = true;
-        Rs2AntibanSettings.contextualVariability = true;
+        Rs2AntibanSettings.contextualVariability = false;
         Rs2AntibanSettings.dynamicIntensity = false;
         Rs2AntibanSettings.dynamicActivity = false;
         Rs2AntibanSettings.devDebug = false;
         Rs2AntibanSettings.takeMicroBreaks = false;
-        Rs2AntibanSettings.playSchedule = true;
-        Rs2AntibanSettings.universalAntiban = false;
+        Rs2AntibanSettings.playSchedule = false;
+        Rs2AntibanSettings.universalAntiban = true;
         Rs2AntibanSettings.microBreakDurationLow = 3;
         Rs2AntibanSettings.microBreakDurationHigh = 8;
         Rs2AntibanSettings.actionCooldownChance = 1.00;
         Rs2AntibanSettings.microBreakChance = 0.05;
-        Rs2Antiban.setActivity(Activity.GENERAL_RUNECRAFT);
+        Rs2AntibanSettings.moveMouseOffScreen = true;
+        Rs2AntibanSettings.moveMouseOffScreenChance = 0.10;
+        Rs2AntibanSettings.moveMouseRandomly = true;
+        Rs2AntibanSettings.moveMouseRandomlyChance = 0.30;
+        Rs2Antiban.setActivityIntensity(ActivityIntensity.LOW);
+        Rs2Antiban.setActivity(Activity.CRAFTING_BLOODS_TRUE_ALTAR);
     }
 
     /**
@@ -442,7 +450,11 @@ public class AntibanSetupTemplates {
         Rs2AntibanSettings.microBreakDurationHigh = 8;
         Rs2AntibanSettings.actionCooldownChance = 1.00;
         Rs2AntibanSettings.microBreakChance = 0.05;
-        Rs2Antiban.setActivity(Activity.GENERAL_SMITHING);
+        Rs2AntibanSettings.moveMouseOffScreen = true;
+        Rs2AntibanSettings.moveMouseOffScreenChance = 0.10;
+        Rs2AntibanSettings.moveMouseRandomly = true;
+        Rs2AntibanSettings.moveMouseRandomlyChance = 0.30;
+        Rs2Antiban.setActivityIntensity(ActivityIntensity.LOW);
     }
 
     /**
@@ -669,9 +681,9 @@ public class AntibanSetupTemplates {
         Rs2AntibanSettings.timeOfDayAdjust = false;
         Rs2AntibanSettings.simulateMistakes = true;
         Rs2AntibanSettings.naturalMouse = true;
-        Rs2AntibanSettings.contextualVariability = true;
+        Rs2AntibanSettings.contextualVariability = false;
         Rs2AntibanSettings.dynamicIntensity = true;
-        Rs2AntibanSettings.dynamicActivity = true;
+        Rs2AntibanSettings.dynamicActivity = false;
         Rs2AntibanSettings.devDebug = false;
         Rs2AntibanSettings.takeMicroBreaks = false;
         Rs2AntibanSettings.playSchedule = false;
@@ -680,6 +692,12 @@ public class AntibanSetupTemplates {
         Rs2AntibanSettings.microBreakDurationHigh = 8;
         Rs2AntibanSettings.actionCooldownChance = 1.00;
         Rs2AntibanSettings.microBreakChance = 0.05;
+        Rs2AntibanSettings.moveMouseOffScreen = true;
+        Rs2AntibanSettings.moveMouseOffScreenChance = 0.10;
+        Rs2AntibanSettings.moveMouseRandomly = true;
+        Rs2AntibanSettings.moveMouseRandomlyChance = 0.30;
+        Rs2Antiban.setActivityIntensity(ActivityIntensity.LOW);
+
     }
 
 }
