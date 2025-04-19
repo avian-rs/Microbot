@@ -63,7 +63,8 @@ public class BlastoiseFurnaceScript extends Script {
         primaryOreEmpty = !Rs2Inventory.hasItem(config.getBars().getPrimaryOre());
         secondaryOreEmpty = !Rs2Inventory.hasItem(config.getBars().getSecondaryOre());
         Rs2Antiban.resetAntibanSettings();
-        applyAntiBanSettings();
+//        applyAntiBanSettings();
+        Rs2Antiban.antibanSetupTemplates.applySmithingSetup();
 
         this.mainScheduledFuture = this.scheduledExecutorService.scheduleWithFixedDelay(() -> {
             try {
@@ -119,7 +120,7 @@ public class BlastoiseFurnaceScript extends Script {
                             this.shutdown();
                         }
 
-                        if (!Rs2Player.hasStaminaBuffActive() && Microbot.getClient().getEnergy() < 8100) {
+                        if (!Rs2Player.hasStaminaBuffActive() && Microbot.getClient().getEnergy() < 4100) {
                             this.useStaminaPotions();
                         }
 
@@ -207,9 +208,9 @@ public class BlastoiseFurnaceScript extends Script {
             return;
         depositOre();
         Rs2Walker.walkFastCanvas(new WorldPoint(1940, 4962, 0));
-        sleep(3400);
+        sleepGaussian(3000,200);
         sleepUntil(() -> barsInDispenser(config.getBars()) > 0, 10000);
-        sleep(400, 700);
+        sleepGaussian(550,150);
     }
 
     private void retrievePrimary() {
@@ -220,9 +221,9 @@ public class BlastoiseFurnaceScript extends Script {
         }
         depositOre();
         Rs2Walker.walkFastCanvas(new WorldPoint(1940, 4962, 0));
-        sleep(3400);
+        sleepGaussian(3000,200);
         sleepUntil(() -> barsInDispenser(this.config.getBars()) > 0, 10000);
-        sleep(400, 700);
+        sleepGaussian(550,150);
     }
 
     private void retrieveDoubleCoal() {
@@ -251,6 +252,7 @@ public class BlastoiseFurnaceScript extends Script {
         Rs2Inventory.interact(ItemID.ICE_GLOVES, "wear");
         Rs2Inventory.waitForInventoryChanges(2000);
     }
+
 
     private void retrieveItemsForCurrentFurnaceInteraction() {
         switch (config.getBars()) {
@@ -413,21 +415,21 @@ public class BlastoiseFurnaceScript extends Script {
         boolean usedPotion = false;
 
         // Step 1: Keep using Energy potions until energy is above 71%
-        while (Microbot.getClient().getEnergy() < 6900) {
-            usedPotion = usePotionIfNeeded("Energy potion", 6900);
-            if (!usedPotion) {
-                break; // Exit if no Energy potion is available
-            }
-        }
+//        while (Microbot.getClient().getEnergy() < 6900) {
+//            usedPotion = usePotionIfNeeded("Energy potion", 6900);
+//            if (!usedPotion) {
+//                break; // Exit if no Energy potion is available
+//            }
+//        }
 
         // Step 2: If energy is above 71% but below 81%, use Stamina potion if no stamina buff is active
-        if (Microbot.getClient().getEnergy() < 8100 && !Rs2Player.hasStaminaBuffActive()) {
-            usedPotion = usePotionIfNeeded("Stamina potion", 8100);
+        if (Microbot.getClient().getEnergy() < 4100 && !Rs2Player.hasStaminaBuffActive()) {
+            usedPotion = usePotionIfNeeded("Stamina potion", 4100);
         }
 
         // Sleep after using a potion
         if (usedPotion) {
-            this.sleep(161, 197);
+            sleepGaussian(250,50);
         }
     }
 
@@ -445,13 +447,13 @@ public class BlastoiseFurnaceScript extends Script {
 
     private boolean withdrawPotion(String potionName) {
         Rs2Bank.withdrawOne(potionName);
-        sleep(900);
+        sleepGaussian(800,100);
         return true;
     }
 
     private boolean drinkPotion(String potionName) {
         Rs2Inventory.interact(potionName, "Drink");
-        sleep(900);
+        sleepGaussian(800,100);
         return true;
     }
 
