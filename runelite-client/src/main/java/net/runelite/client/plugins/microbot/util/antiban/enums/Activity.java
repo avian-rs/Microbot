@@ -68,7 +68,7 @@ public enum Activity {
     GENERAL_THIEVING("General Thieving", Category.SKILLING_THIEVING, ActivityIntensity.MODERATE),
     GENERAL_SLAYER("General Slayer", Category.COMBAT_HIGH, ActivityIntensity.MODERATE),
     GENERAL_RUNECRAFT("General Runecraft", Category.SKILLING_RUNECRAFT, ActivityIntensity.MODERATE),
-    GENERAL_HUNTER("General Hunter", Category.SKILLING_HUNTER, ActivityIntensity.MODERATE),
+    GENERAL_HUNTER("General Hunter", Category.SKILLING_HUNTER, ActivityIntensity.LOW),
     GENERAL_COMBAT("General Combat", Category.COMBAT_HIGH, ActivityIntensity.HIGH),
     GENERAL_HERBLORE("General Herblore", Category.SKILLING_HERBLORE, ActivityIntensity.LOW),
     GENERAL_FARMING("General Farming", Category.SKILLING_FARMING, ActivityIntensity.MODERATE),
