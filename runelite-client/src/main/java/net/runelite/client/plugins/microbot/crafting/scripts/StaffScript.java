@@ -7,6 +7,7 @@ import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.plugins.microbot.Script;
 import net.runelite.client.plugins.microbot.crafting.CraftingConfig;
 import net.runelite.client.plugins.microbot.crafting.enums.Staffs;
+import net.runelite.client.plugins.microbot.util.antiban.Rs2Antiban;
 import net.runelite.client.plugins.microbot.util.bank.Rs2Bank;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2Inventory;
 import net.runelite.client.plugins.microbot.util.keyboard.Rs2Keyboard;
@@ -15,41 +16,42 @@ import net.runelite.client.plugins.microbot.util.widget.Rs2Widget;
 
 import java.util.concurrent.TimeUnit;
 
-class ProgressiveStaffmakingModel {
-    @Getter
-    @Setter
-    private Staffs itemToCraft;
-}
+import static net.runelite.api.ItemID.BIG_BONES;
+//
+//class ProgressiveStaffmakingModel {
+//    @Getter
+//    @Setter
+//    private Staffs itemToCraft;
+//}
 
 public class StaffScript extends Script {
 
     public static double version = 1.0;
-    ProgressiveStaffmakingModel model = new ProgressiveStaffmakingModel();
+//    ProgressiveStaffmakingModel model = new ProgressiveStaffmakingModel();
 
-    String battleStaff = "Battlestaff";
+    private final int battleStaffID = 1391;
     Staffs itemToCraft;
 
     public void run(CraftingConfig config) {
-        if (config.staffType() == Staffs.PROGRESSIVE)
-            calculateItemToCraft();
+        Microbot.enableAutoRunOn = false;
+        Rs2Antiban.resetAntibanSettings();
+        Rs2Antiban.antibanSetupTemplates.applyCraftingSetup();
+
+//        if (config.staffType() == Staffs.PROGRESSIVE)
+//            calculateItemToCraft();
 
         mainScheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
             if (!super.run()) return;
             if (config.Afk() && Random.random(1, 100) == 2)
                 sleep(1000, 60000);
             try {
+                itemToCraft = config.staffType();
 
-                if (config.staffType() == Staffs.PROGRESSIVE) {
-                    itemToCraft = model.getItemToCraft();
-                } else {
-                    itemToCraft = config.staffType();
-                }
-
-                if (Rs2Inventory.hasItem(battleStaff)
+                if (Rs2Inventory.hasItem(battleStaffID)
                         && Rs2Inventory.hasItem(itemToCraft.getOrb())) {
                     craft(config);
                 }
-                if (!Rs2Inventory.hasItem(battleStaff)
+                if (!Rs2Inventory.hasItem(battleStaffID)
                         || !Rs2Inventory.hasItem(itemToCraft.getOrb())) {
                     bank(config);
                 }
@@ -62,20 +64,26 @@ public class StaffScript extends Script {
 
     private void bank(CraftingConfig config) {
         Rs2Bank.openBank();
-        sleepUntilOnClientThread(() -> Rs2Bank.isOpen());
+//        sleepUntilOnClientThread(() -> Rs2Bank.isOpen());
+        sleepUntil(Rs2Bank::isOpen);
 
         Rs2Bank.depositAll(itemToCraft.getItemName());
-        sleepUntilOnClientThread(() -> !Rs2Inventory.hasItem(itemToCraft.getItemName()));
+        sleepUntil(() -> Rs2Inventory.contains(itemToCraft.getItemName()));
 
-        Rs2Bank.withdrawX(true, battleStaff, 14);
-        sleepUntilOnClientThread(() -> Rs2Inventory.hasItem(battleStaff));
+//        sleepUntilOnClientThread(() -> !Rs2Inventory.hasItem(itemToCraft.getItemName()));
+
+        Rs2Bank.withdrawX(true, battleStaffID, 14);
+        sleepUntil(() -> Rs2Inventory.contains(battleStaffID));
+
 
         verifyItemInBank(itemToCraft.getOrb());
 
         Rs2Bank.withdrawX(true, itemToCraft.getOrb(), 14);
-        sleepUntilOnClientThread(() -> Rs2Inventory.hasItem(itemToCraft.getOrb()));
+        sleepUntil(() -> Rs2Inventory.contains(itemToCraft.getOrb()));
 
-        sleep(600, 3000);
+//        sleepUntilOnClientThread(() -> Rs2Inventory.hasItem(itemToCraft.getOrb()));
+//        sleepGaussian();
+        sleepGaussian(1500, 900);
         Rs2Bank.closeBank();
     }
 
@@ -89,7 +97,7 @@ public class StaffScript extends Script {
     }
 
     private void craft(CraftingConfig config) {
-        Rs2Inventory.combine(battleStaff, itemToCraft.getOrb());
+        Rs2Inventory.combine(battleStaffID, config.staffType().getId());
 
         sleepUntilOnClientThread(() -> Rs2Widget.getWidget(17694734) != null);
 
@@ -98,20 +106,6 @@ public class StaffScript extends Script {
         sleepUntilOnClientThread(() -> Rs2Widget.getWidget(17694734) == null);
 
         sleepUntilOnClientThread(() -> !Rs2Inventory.hasItem(itemToCraft.getOrb()), 60000);
-    }
-
-    public ProgressiveStaffmakingModel calculateItemToCraft() {
-        int craftinglvl = Microbot.getClient().getRealSkillLevel(Skill.CRAFTING);
-        if (craftinglvl < Staffs.EARTH_BATTLESTAFF.getLevelRequired()) {
-            model.setItemToCraft(Staffs.WATER_BATTLESTAFF);
-        } else if (craftinglvl < Staffs.FIRE_BATTLESTAFF.getLevelRequired()) {
-            model.setItemToCraft(Staffs.EARTH_BATTLESTAFF);
-        } else if (craftinglvl < Staffs.AIR_BATTLESTAFF.getLevelRequired()) {
-            model.setItemToCraft(Staffs.FIRE_BATTLESTAFF);
-        } else if (craftinglvl < 99) {
-            model.setItemToCraft(Staffs.AIR_BATTLESTAFF);
-        }
-        return model;
     }
 
     @Override
