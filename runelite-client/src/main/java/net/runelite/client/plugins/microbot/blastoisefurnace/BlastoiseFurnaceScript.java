@@ -63,7 +63,6 @@ public class BlastoiseFurnaceScript extends Script {
         primaryOreEmpty = !Rs2Inventory.hasItem(config.getBars().getPrimaryOre());
         secondaryOreEmpty = !Rs2Inventory.hasItem(config.getBars().getSecondaryOre());
         Rs2Antiban.resetAntibanSettings();
-//        applyAntiBanSettings();
         Rs2Antiban.antibanSetupTemplates.applySmithingSetup();
 
         this.mainScheduledFuture = this.scheduledExecutorService.scheduleWithFixedDelay(() -> {
