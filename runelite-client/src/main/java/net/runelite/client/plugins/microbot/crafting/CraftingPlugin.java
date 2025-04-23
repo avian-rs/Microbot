@@ -56,14 +56,14 @@ public class CraftingPlugin extends Plugin {
         Microbot.setClient(client);
         Microbot.setClientThread(clientThread);
         Microbot.setNotifier(notifier);
-        Microbot.setMouse(new VirtualMouse());
+//        Microbot.setMouse(new VirtualMouse());
         if (overlayManager != null) {
             overlayManager.add(craftingOverlay);
         }
 
-//        if (config.activityType() == Activities.DEFAULT) {
-
-        if (config.activityType() == Activities.GEM_CUTTING) {
+        if (config.activityType() == Activities.DEFAULT) {
+            defaultScript.run(config);
+        } else if (config.activityType() == Activities.GEM_CUTTING) {
             gemsScript.run(config);
         } else if (config.activityType() == Activities.GLASSBLOWING) {
             glassblowingScript.run(config);
