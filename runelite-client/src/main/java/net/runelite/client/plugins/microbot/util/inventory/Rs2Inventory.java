@@ -146,30 +146,24 @@ public class Rs2Inventory {
      * @return True if the combine operation was successful, false otherwise.
      */
     public static boolean combine(Rs2ItemModel primary, Rs2ItemModel secondary) {
-        // Get the primary item
-        Rs2ItemModel primaryItem = get(item -> item.getId() == primary.getId());
-        if (primaryItem == null) {
-            Microbot.log("Primary item not found in the inventory.");
+        // Use exactly the passed‐in primary slot
+        if (primary == null) {
+            Microbot.log("Primary model is null.");
             return false;
         }
-
-        // Select the primary item
-        boolean primaryItemInteracted = use(primaryItem);
-        if (!primaryItemInteracted) {
+        boolean primaryInteracted = use(primary);
+        if (!primaryInteracted) {
             return false;
         }
         sleep(100, 175);
 
-        // Get a secondary item that isn't the same as the primary
-        Rs2ItemModel secondaryItem = get(item -> item.getId() == secondary.getId() && item.getSlot() != primaryItem.getSlot());
-        if (secondaryItem == null) {
-            Microbot.log("No valid secondary item found to combine with.");
+        // Use exactly the passed‐in secondary slot
+        if (secondary == null) {
+            Microbot.log("Secondary model is null.");
             return false;
         }
-
-        // Interact with the secondary item
-        boolean secondaryItemInteracted = use(secondaryItem);
-        return primaryItemInteracted && secondaryItemInteracted;
+        boolean secondaryInteracted = use(secondary);
+        return primaryInteracted && secondaryInteracted;
     }
 
     /**
