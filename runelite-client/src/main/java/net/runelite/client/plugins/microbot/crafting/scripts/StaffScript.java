@@ -45,7 +45,6 @@ public class StaffScript extends Script {
                         && Rs2Inventory.hasItem(itemToCraft.getOrb())) {
                     craft(config);
                 }
-                maybeMoveCamera(); // Simulate camera adjustment before action
                 if (!Rs2Inventory.hasItem(battleStaffID)
                         || !Rs2Inventory.hasItem(itemToCraft.getOrb())) {
                     bank(config);
@@ -56,30 +55,30 @@ public class StaffScript extends Script {
             }
         }, 0, Rs2Random.randomGaussian(650, 100), TimeUnit.MILLISECONDS);
     }
-    private void maybeMoveCamera() {
-        if (Rs2Random.dicePercentage(4.0)) { // ~4% chance per loop
-            Microbot.status = "Adjusting camera...";
-
-            // Random yaw direction
-            int targetAngle = Rs2Random.between(0, 360);
-            int maxDeviation = Rs2Random.between(20, 60);
-            Rs2Camera.setAngle(targetAngle, maxDeviation);
-
-            // Optional pitch movement
-            if (Rs2Random.dicePercentage(30.0)) {
-                float targetPitch = Rs2Random.between(30, 96) / 100f; // 30% - 95% pitch
-                Rs2Camera.adjustPitch(targetPitch);
-            }
-
-            // Optional zoom toggle (very rare)
-            if (Rs2Random.dicePercentage(2.0)) {
-                int newZoom = Rs2Random.between(100, 300);
-                Rs2Camera.setZoom(newZoom);
-            }
-
-            sleepGaussian(900, 400); // more natural for a visual readjustment
-        }
-    }
+//    private void maybeMoveCamera() {
+//        if (Rs2Random.dicePercentage(4.0)) { // ~4% chance per loop
+//            Microbot.status = "Adjusting camera...";
+//
+//            // Random yaw direction
+//            int targetAngle = Rs2Random.between(0, 360);
+//            int maxDeviation = Rs2Random.between(20, 60);
+//            Rs2Camera.setAngle(targetAngle, maxDeviation);
+//
+//            // Optional pitch movement
+//            if (Rs2Random.dicePercentage(30.0)) {
+//                float targetPitch = Rs2Random.between(30, 96) / 100f; // 30% - 95% pitch
+//                Rs2Camera.adjustPitch(targetPitch);
+//            }
+//
+//            // Optional zoom toggle (very rare)
+//            if (Rs2Random.dicePercentage(2.0)) {
+//                int newZoom = Rs2Random.between(100, 300);
+//                Rs2Camera.setZoom(newZoom);
+//            }
+//
+//            sleepGaussian(900, 400); // more natural for a visual readjustment
+//        }
+//    }
     private void bank(CraftingConfig config) {
         Rs2Bank.openBank();
         sleepUntil(Rs2Bank::isOpen);
@@ -98,7 +97,6 @@ public class StaffScript extends Script {
         maybeHumanIdleBehavior();
         sleepGaussian(1600, 700); // Slower human deposit/pickup confirmation
         Rs2Bank.closeBank();
-        maybeMoveCamera(); // Simulate camera adjustment before action
     }
 
     private void verifyItemInBank(String item) {
@@ -139,7 +137,9 @@ public class StaffScript extends Script {
         sleepGaussian(2500, 500);
 
         sleepUntil(() -> !Rs2Inventory.hasItem(itemToCraft.getOrb()), 60000);
-        maybeMoveCamera(); // Simulate camera adjustment before action
+
+        sleepGaussian(800, 350); // Natural delay before bank closure
+
     }
     private void maybeHumanIdleBehavior() {
         if (Rs2Random.dicePercentage(3.0)) {
