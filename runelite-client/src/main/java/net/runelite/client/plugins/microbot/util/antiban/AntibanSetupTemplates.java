@@ -114,7 +114,7 @@ public class AntibanSetupTemplates {
         Rs2AntibanSettings.timeOfDayAdjust = false;
         Rs2AntibanSettings.simulateMistakes = true;
         Rs2AntibanSettings.naturalMouse = true;
-        Rs2AntibanSettings.contextualVariability = false;
+        Rs2AntibanSettings.contextualVariability = true;
         Rs2AntibanSettings.dynamicIntensity = false;
         Rs2AntibanSettings.dynamicActivity = false;
         Rs2AntibanSettings.devDebug = false;
@@ -418,7 +418,7 @@ public class AntibanSetupTemplates {
         Rs2AntibanSettings.timeOfDayAdjust = false;
         Rs2AntibanSettings.simulateMistakes = true;
         Rs2AntibanSettings.naturalMouse = true;
-        Rs2AntibanSettings.contextualVariability = false;
+        Rs2AntibanSettings.contextualVariability = true;
         Rs2AntibanSettings.dynamicIntensity = false;
         Rs2AntibanSettings.dynamicActivity = true;
         Rs2AntibanSettings.devDebug = false;
@@ -642,7 +642,7 @@ public class AntibanSetupTemplates {
         Rs2AntibanSettings.timeOfDayAdjust = false;
         Rs2AntibanSettings.simulateMistakes = true;
         Rs2AntibanSettings.naturalMouse = true;
-        Rs2AntibanSettings.contextualVariability = false;
+        Rs2AntibanSettings.contextualVariability = true;
         Rs2AntibanSettings.dynamicIntensity = true;
         Rs2AntibanSettings.dynamicActivity = false;
         Rs2AntibanSettings.devDebug = false;
