@@ -1,7 +1,6 @@
 package net.runelite.client.plugins.microbot.crafting.enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import net.runelite.api.gameval.ItemID;
 
 @Getter
 @RequiredArgsConstructor
@@ -10,8 +9,7 @@ public enum Staffs {
     WATER_BATTLESTAFF("Water Battlestaff", "Water Battlestaff", 54, "Water Orb", 571),
     EARTH_BATTLESTAFF("Earth battlestaff", "Earth battlestaff", 58, "Earth orb", 575),
     FIRE_BATTLESTAFF("Fire Battlestaff", "Fire Battlestaff", 62, "Fire Orb", 569),
-    AIR_BATTLESTAFF("Air Battlestaff", "Air Battlestaff", 66, "Air Orb", 573),
-    AMETHYST("Amethyst", "Amethyst", 66, "Chisel", ItemID.AMETHYST);
+    AIR_BATTLESTAFF("Air Battlestaff", "Air Battlestaff", 66, "Air Orb", 573);
 
     private final String label;
     private final String itemName;
