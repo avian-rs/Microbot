@@ -423,7 +423,7 @@ public class BlastoiseFurnaceScript extends Script {
 
         // Step 2: If energy is above 71% but below 81%, use Stamina potion if no stamina buff is active
         if (Microbot.getClient().getEnergy() < 4100 && !Rs2Player.hasStaminaBuffActive()) {
-            usedPotion = usePotionIfNeeded("Stamina potion", 4100);
+            usedPotion = usePotionIfNeeded(12631, 4100);
         }
 
         // Sleep after using a potion
@@ -432,11 +432,11 @@ public class BlastoiseFurnaceScript extends Script {
         }
     }
 
-    private boolean usePotionIfNeeded(String potionName, int energyThreshold) {
+    private boolean usePotionIfNeeded(int id, int energyThreshold) {
         if (Microbot.getClient().getEnergy() < energyThreshold) {
-            if (withdrawPotion(potionName)) {
-                if (drinkPotion(potionName)) {
-                    depositItems(potionName);
+            if (withdrawPotion(id)) {
+                if (drinkPotion(id)) {
+                    depositItems(id);
                     return true; // Potion was successfully used
                 }
             }
@@ -446,19 +446,32 @@ public class BlastoiseFurnaceScript extends Script {
 
     private boolean withdrawPotion(String potionName) {
         Rs2Bank.withdrawOne(potionName);
-        sleepGaussian(800,100);
+        sleepGaussian(650,150);
+        return true;
+    }
+    private boolean withdrawPotion(int id) {
+        Rs2Bank.withdrawOne(id);
+        sleepGaussian(650,150);
         return true;
     }
 
-    private boolean drinkPotion(String potionName) {
-        Rs2Inventory.interact(potionName, "Drink");
-        sleepGaussian(800,100);
+    private boolean drinkPotion(int id) {
+        Rs2Inventory.interact(id, "Drink");
+        sleepGaussian(650,150);
         return true;
     }
 
     private void depositItems(String potionName) {
         if (Rs2Inventory.hasItem(potionName)) {
             Rs2Bank.depositOne(potionName);
+        }
+        if (Rs2Inventory.hasItem(ItemID.VIAL)) {
+            Rs2Bank.depositOne(ItemID.VIAL);
+        }
+    }
+    private void depositItems(int id) {
+        if (Rs2Inventory.hasItem(id)) {
+            Rs2Bank.depositOne(id);
         }
         if (Rs2Inventory.hasItem(ItemID.VIAL)) {
             Rs2Bank.depositOne(ItemID.VIAL);
