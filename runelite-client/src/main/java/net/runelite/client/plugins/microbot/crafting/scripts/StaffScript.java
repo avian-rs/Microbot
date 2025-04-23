@@ -55,30 +55,7 @@ public class StaffScript extends Script {
             }
         }, 0, Rs2Random.randomGaussian(650, 100), TimeUnit.MILLISECONDS);
     }
-//    private void maybeMoveCamera() {
-//        if (Rs2Random.dicePercentage(4.0)) { // ~4% chance per loop
-//            Microbot.status = "Adjusting camera...";
-//
-//            // Random yaw direction
-//            int targetAngle = Rs2Random.between(0, 360);
-//            int maxDeviation = Rs2Random.between(20, 60);
-//            Rs2Camera.setAngle(targetAngle, maxDeviation);
-//
-//            // Optional pitch movement
-//            if (Rs2Random.dicePercentage(30.0)) {
-//                float targetPitch = Rs2Random.between(30, 96) / 100f; // 30% - 95% pitch
-//                Rs2Camera.adjustPitch(targetPitch);
-//            }
-//
-//            // Optional zoom toggle (very rare)
-//            if (Rs2Random.dicePercentage(2.0)) {
-//                int newZoom = Rs2Random.between(100, 300);
-//                Rs2Camera.setZoom(newZoom);
-//            }
-//
-//            sleepGaussian(900, 400); // more natural for a visual readjustment
-//        }
-//    }
+
     private void bank(CraftingConfig config) {
         Rs2Bank.openBank();
         sleepUntil(Rs2Bank::isOpen);
@@ -94,8 +71,7 @@ public class StaffScript extends Script {
 
         Rs2Bank.withdrawX(true, itemToCraft.getOrb(), 14);
         sleepUntil(() -> Rs2Inventory.contains(itemToCraft.getOrb()));
-        maybeHumanIdleBehavior();
-        sleepGaussian(1600, 700); // Slower human deposit/pickup confirmation
+        sleepGaussian(400, 100); // Slower human deposit/pickup confirmation
         Rs2Bank.closeBank();
     }
 
@@ -112,7 +88,6 @@ public class StaffScript extends Script {
     }
     private void craft(CraftingConfig config) {
         maybeHumanIdleBehavior();
-//        Rs2Inventory.combine(battleStaffID, config.staffType().getId());
         // decide which slots you want
         int staffSlot = 12;
         int orbSlot   = 16;
@@ -132,24 +107,26 @@ public class StaffScript extends Script {
         } else {
             Microbot.log("Could not find items in slots " + staffSlot + " & " + orbSlot);
         }
+
         Rs2Widget.sleepUntilHasWidgetText("How many do you wish to make?", 270, 5, false, 5000);
         Rs2Keyboard.keyPress(KeyEvent.VK_SPACE);
         sleepGaussian(2500, 500);
 
         sleepUntil(() -> !Rs2Inventory.hasItem(itemToCraft.getOrb()), 60000);
 
-        sleepGaussian(800, 350); // Natural delay before bank closure
+        sleepGaussian(700, 200); // Natural delay before bank closure
 
     }
     private void maybeHumanIdleBehavior() {
         if (Rs2Random.dicePercentage(3.0)) {
-            Microbot.status = "Checking inventory...";
+            Microbot.log("Checking inventory...");
             Rs2Inventory.open();
             sleepGaussian(800, 300);
+
         }
 
-        if (Rs2Random.dicePercentage(1.0)) {
-            Microbot.status = "Oops, misclicked...";
+        if (Rs2Random.dicePercentage(3)) {
+            Microbot.log("Oops, misclicked...");
             Rs2ItemModel orbItem = Rs2Inventory.get(itemToCraft.getOrb());
             if (orbItem != null) {
                 Rs2Inventory.hover(orbItem);
