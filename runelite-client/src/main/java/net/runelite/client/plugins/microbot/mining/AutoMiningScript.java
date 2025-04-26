@@ -15,6 +15,7 @@ import net.runelite.client.plugins.microbot.util.depositbox.Rs2DepositBox;
 import net.runelite.client.plugins.microbot.util.equipment.Rs2Equipment;
 import net.runelite.client.plugins.microbot.util.gameobject.Rs2GameObject;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2Inventory;
+import net.runelite.client.plugins.microbot.util.math.Rs2Random;
 import net.runelite.client.plugins.microbot.util.player.Rs2Player;
 import net.runelite.client.plugins.microbot.util.walker.Rs2Walker;
 
@@ -72,6 +73,7 @@ public class AutoMiningScript extends Script {
                             if (Rs2GameObject.interact(rock)) {
                                 Rs2Player.waitForXpDrop(Skill.MINING, true);
                                 Rs2Antiban.actionCooldown();
+                                sleepGaussian(850, 150);
                                 Rs2Antiban.takeMicroBreakByChance();
                             }
                         }
@@ -106,7 +108,7 @@ public class AutoMiningScript extends Script {
             } catch (Exception ex) {
                 Microbot.log(ex.getMessage());
             }
-        }, 0, 100, TimeUnit.MILLISECONDS);
+        }, 0, Rs2Random.randomGaussian(650, 100), TimeUnit.MILLISECONDS);
         return true;
     }
 

@@ -20,19 +20,6 @@ public enum Bars {
             Varbits.BLAST_FURNACE_STEEL_BAR,
             Varbits.BLAST_FURNACE_IRON_ORE,
             Varbits.BLAST_FURNACE_COAL,
-            true,
-            false
-    ),
-    GOLD_BAR(
-            ItemID.GOLD_BAR,
-            ItemID.GOLD_ORE,
-            1,
-            ItemID.GOLD_ORE,
-            1,
-            Varbits.BLAST_FURNACE_GOLD_BAR,
-            Varbits.BLAST_FURNACE_GOLD_ORE,
-            null,
-            false,
             true
     ),
     MITHRIL_BAR(
@@ -44,8 +31,7 @@ public enum Bars {
             Varbits.BLAST_FURNACE_MITHRIL_BAR,
             Varbits.BLAST_FURNACE_MITHRIL_ORE,
             Varbits.BLAST_FURNACE_COAL,
-            true,
-            false
+            true
     ),
     ADAMANTITE_BAR(
             ItemID.ADAMANTITE_BAR,
@@ -56,8 +42,7 @@ public enum Bars {
             Varbits.BLAST_FURNACE_ADAMANTITE_BAR,
             Varbits.BLAST_FURNACE_ADAMANTITE_ORE,
             Varbits.BLAST_FURNACE_COAL,
-            true,
-            false
+            true
     ),
     RUNITE_BAR(
             ItemID.RUNITE_BAR,
@@ -68,8 +53,7 @@ public enum Bars {
             Varbits.BLAST_FURNACE_RUNITE_BAR,
             Varbits.BLAST_FURNACE_RUNITE_ORE,
             Varbits.BLAST_FURNACE_COAL,
-            true,
-            false
+            true
     );
 
     private final int barID;
@@ -81,7 +65,5 @@ public enum Bars {
     private final int BFPrimaryOreID;
     private final Integer BFSecondaryOreID;
     private final boolean requiresCoalBag;
-    private final boolean requiresGoldsmithGloves;
-
 
 }
