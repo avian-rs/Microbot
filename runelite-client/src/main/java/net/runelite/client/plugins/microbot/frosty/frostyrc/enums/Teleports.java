@@ -1,4 +1,4 @@
-package net.runelite.client.plugins.microbot.frosty.bloods.enums;
+package net.runelite.client.plugins.microbot.frosty.frostyrc.enums;
 
 import lombok.Getter;
 
@@ -10,8 +10,7 @@ public enum Teleports {
     QUEST_CAPE("Quest point cape", new Integer[]{9813, 13068}, null, "Teleport"),
     CRAFTING_CAPE("Crafting Cape", new Integer[]{9780, 9781}, new Integer[]{11571}, "Teleport"),
     CONSTRUCTION_CAPE("Construction cape", new Integer[]{9789, 9790}, null, "Tele to POH"),
-    FARMING_CAPE("Farming cape", new Integer[]{9810, 9811}, new Integer[]{4922}, "Teleport"),
-    EDGEVILLE_TELEPORT("Amulet of eternal glory", new Integer[]{19707}, new Integer[]{12342}, "Edgeville");
+    FARMING_CAPE("Farming cape", new Integer[]{9810, 9811}, new Integer[]{4922}, "Teleport");
 
     @Getter
     private final String name;
