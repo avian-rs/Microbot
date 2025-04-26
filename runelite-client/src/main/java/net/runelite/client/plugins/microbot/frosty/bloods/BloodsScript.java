@@ -20,6 +20,7 @@ import net.runelite.client.plugins.microbot.util.gameobject.Rs2GameObject;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2Inventory;
 import net.runelite.client.plugins.microbot.util.keyboard.Rs2Keyboard;
 import net.runelite.client.plugins.microbot.util.magic.Rs2Magic;
+import net.runelite.client.plugins.microbot.util.math.Rs2Random;
 import net.runelite.client.plugins.microbot.util.npc.Rs2Npc;
 import net.runelite.client.plugins.microbot.util.player.Rs2Player;
 import net.runelite.client.plugins.microbot.util.tabs.Rs2Tab;
@@ -109,7 +110,7 @@ public class BloodsScript extends Script {
                 System.out.println(ex.getMessage());
                 Microbot.log("Error in script" + ex.getMessage());
             }
-        }, 0, 1000, TimeUnit.MILLISECONDS);
+        }, 0, Rs2Random.randomGaussian(650, 100), TimeUnit.MILLISECONDS);
         return true;
     }
 
