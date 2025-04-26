@@ -12,6 +12,7 @@ import net.runelite.client.plugins.microbot.util.inventory.Rs2ItemModel;
 import net.runelite.client.plugins.microbot.util.keyboard.Rs2Keyboard;
 import net.runelite.client.plugins.microbot.util.math.Rs2Random;
 import net.runelite.client.plugins.microbot.util.player.Rs2Player;
+import net.runelite.client.plugins.microbot.util.widget.Rs2Widget;
 import net.runelite.http.api.item.ItemPrice;
 
 import javax.inject.Inject;
@@ -64,8 +65,8 @@ public class BanksBankStanderScript extends Script {
             sleepTarget = sleepMin + ((sleepMax - sleepMin) / 2);
         }
         // Determine whether the first & second item is the ID or Name.
-        firstItemId = TryParseInt(config.firstItemIdentifier());
-        secondItemId = TryParseInt(config.secondItemIdentifier());
+        firstItemId = net.runelite.api.gameval.ItemID.CHISEL;
+        secondItemId = net.runelite.api.gameval.ItemID.AMETHYST;
         thirdItemId = TryParseInt(config.thirdItemIdentifier());
         fourthItemId = TryParseInt(config.fourthItemIdentifier());
 
@@ -82,7 +83,8 @@ public class BanksBankStanderScript extends Script {
                 ex.printStackTrace();
                 Microbot.log(ex.getMessage());
             }
-        }, 0, 100, TimeUnit.MILLISECONDS);
+        }, 0, Rs2Random.randomGaussian(200, 100), TimeUnit.MILLISECONDS);
+
         return true;
     }
 
@@ -134,7 +136,7 @@ public class BanksBankStanderScript extends Script {
         if (config.pause()) {
             while (this.isRunning() && config.pause()) {
                 if (!config.pause() || !this.isRunning()) { break; }
-                sleep(100, 1000);
+                sleepGaussian(400,300);
             }
         }
         if (currentStatus != CurrentStatus.FETCH_SUPPLIES) { currentStatus = CurrentStatus.FETCH_SUPPLIES; }
@@ -221,28 +223,14 @@ public class BanksBankStanderScript extends Script {
 
         // When the config option is enabled, we interact with the popup when processing items.
         if (config.needPromptEntry()) {
-            sleep(calculateSleepDuration(1));
-            isWaitingForPrompt = true;
-            sleepUntil(() -> !isWaitingForPrompt, Rs2Random.between(800, 1200));
-            Rs2Keyboard.keyPress(KeyEvent.VK_SPACE);
+            sleepGaussian(220,20); // Short delay to ensure prompt processing
+            sleepUntil(() -> Rs2Widget.hasWidget("How many do you wish to make?"), 3000);
+            Rs2Keyboard.keyPress(KeyEvent.VK_4);
+            Microbot.log("Pressed key 4");
             previousItemChange = System.currentTimeMillis();
-            sleep(100); // Short delay to ensure prompt processing
-            isWaitingForPrompt = false; // Ensure prompt flag is reset
-            if (secondItemId != null) {
-                if(config.amuletOfChemistry()){
-                    sleepUntil(() -> !Rs2Inventory.hasItem(secondItemId) || (!Rs2Equipment.isWearing(ItemID.AMULET_OF_CHEMISTRY) && !Rs2Equipment.isWearing(ItemID.ALCHEMISTS_AMULET_29990)), 40000);
-                    sleep(calculateSleepDuration(1));
-                    checkForAmulet();
-//                    if(Rs2Bank.isOpen()) {
-//                        Rs2Bank.closeBank();
-//                    }
-                }else{
-                    sleepUntil(() -> !Rs2Inventory.hasItem(secondItemId), 40000);
-                }
-            } else {
-                sleepUntil(() -> !Rs2Inventory.hasItem(config.secondItemIdentifier()), 40000);
-            }
-            sleep(calculateSleepDuration(1));
+            sleepGaussian(220,20); // Short delay to ensure prompt processing
+            sleepUntil(() -> !Rs2Inventory.hasItem(net.runelite.api.gameval.ItemID.AMETHYST), 40000);
+            sleepGaussian(220,20); // Short delay to ensure prompt processing
         }
         return true;
     }
@@ -286,7 +274,7 @@ public class BanksBankStanderScript extends Script {
         if(!Rs2Bank.isOpen()){
             Rs2Bank.openBank();
             sleepUntil(Rs2Bank::isOpen, 18000);
-            sleep(200, 600);
+            sleepGaussian(400,200);
         }
 
         if (firstItemId != null && ((Rs2Bank.bankItems.stream().filter(item -> item.id == firstItemId).mapToInt(item -> item.quantity).sum() + Rs2Inventory.count(firstItemId))) < config.firstItemQuantity()) {
@@ -419,7 +407,7 @@ public class BanksBankStanderScript extends Script {
             return Integer.parseInt(text);
         } catch (NumberFormatException ex) {
             System.out.println("Could not Parse Int from Item, lookup item and return id");
-            return Microbot.getItemManager().search(text).stream().map(ItemPrice::getId).findFirst().orElse(null);
+            return net.runelite.api.gameval.ItemID.AMETHYST;
         }
     }
     private void checkForAmulet(){

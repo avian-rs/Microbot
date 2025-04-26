@@ -56,8 +56,6 @@ public class AutoWoodcuttingScript extends Script {
         }
         Rs2Antiban.resetAntibanSettings();
         Rs2Antiban.antibanSetupTemplates.applyWoodcuttingSetup();
-        Rs2AntibanSettings.dynamicActivity = true;
-        Rs2AntibanSettings.dynamicIntensity = true;
         initialPlayerLocation = null;
         if (config.firemakeOnly()){
             state = State.FIREMAKING;
@@ -109,6 +107,7 @@ public class AutoWoodcuttingScript extends Script {
                             Rs2Combat.setSpecState(true, 1000);
 
                         if (Rs2Inventory.isFull()) {
+                            sleepGaussian(700,200);
                             state = State.RESETTING;
                             return;
                         }
@@ -156,14 +155,14 @@ public class AutoWoodcuttingScript extends Script {
             } catch (Exception ex) {
                 Microbot.log(ex.getMessage());
             }
-        }, 0, 100, TimeUnit.MILLISECONDS);
+        }, 0, Rs2Random.randomGaussian(650, 100), TimeUnit.MILLISECONDS);
         return true;
     }
 
     private void resetInventory(AutoWoodcuttingConfig config) {
         switch (config.resetOptions()) {
             case DROP:
-                Rs2Inventory.dropAllExcept(false, config.interactOrder(), "axe", "tinderbox");
+                Rs2Inventory.dropAllExcept(false, config.interactOrder(), "axe", "crystal shard");
                 state = State.WOODCUTTING;
                 break;
             case BANK:
