@@ -34,7 +34,6 @@ public class RcScript extends Script {
     private final WorldPoint caveFairyRing = new WorldPoint(3447, 9824, 0);
     private final WorldPoint firstCaveExit = new WorldPoint(3460, 9813, 0);
     private final WorldPoint outsideBloodRuins = new WorldPoint(3558, 9779, 0);
-    private final WorldPoint rightOutsideBloodRuins = new WorldPoint(3543, 9772, 0);
 
     public static final int questCapeTeleportRegion = 10804;
     public static final int bloodAltarRegion = 12875;
@@ -47,6 +46,7 @@ public class RcScript extends Script {
     public static final int inactiveBloodEssence = ItemID.BLOOD_ESSENCE_INACTIVE;
     public static final int bloodRune = ItemID.BLOODRUNE;
     public static final int colossalPouch = ItemID.RCU_POUCH_COLOSSAL;
+    public static final int runePouch = ItemID.BH_RUNE_POUCH;
 
     private static boolean repairingPouch = false;
 
@@ -114,6 +114,7 @@ public class RcScript extends Script {
         Rs2Antiban.resetAntibanSettings();
         super.shutdown();
         Microbot.log("Script has been stopped");
+        //Rs2Player.logout();
     }
 
     private void checkPouches() {
@@ -125,11 +126,13 @@ public class RcScript extends Script {
         int currentRegion = plugin.getMyWorldPoint().getRegionID();
 
         if (!Teleports.CRAFTING_CAPE.matchesRegion(currentRegion)) {
+            Microbot.log("Not in banking region, teleporting");
             handleBankTeleport();
         }
         Rs2Tab.switchToInventoryTab();
 
         if (Rs2Inventory.isFull() && Rs2Inventory.allPouchesFull() && Rs2Inventory.contains("Pure essence")) {
+            Microbot.log("We are full, skipping bank");
             state = State.GOING_HOME;
             return;
         }
@@ -142,6 +145,7 @@ public class RcScript extends Script {
                 (!Rs2Inventory.allPouchesFull()
                         || !Rs2Inventory.contains(colossalPouch)
                         || !Rs2Inventory.contains(pureEss))) {
+            Microbot.log("Opening bank");
             Rs2Bank.openBank();
             sleepUntil(Rs2Bank::isOpen, 2500);
             sleepGaussian(400, 100);
@@ -160,10 +164,12 @@ public class RcScript extends Script {
         if (!Rs2Inventory.contains(activeBloodEssence)) {
             if (!Rs2Bank.hasItem(activeBloodEssence)) {
                 Rs2Bank.withdrawItem(inactiveBloodEssence);
+                Microbot.log("Withdrawing blood essence");
                 sleepUntil(() -> Rs2Inventory.contains(inactiveBloodEssence), 1200);
                 Rs2Bank.closeBank();
                 sleepUntil(() -> !Rs2Bank.isOpen(), 1200);
                 Rs2Inventory.interact(inactiveBloodEssence, "Activate");
+                Microbot.log("Activating blood essence");
                 sleepGaussian(500, 100);
                 Rs2Bank.openBank();
                 sleepUntil(Rs2Bank::isOpen, 1200);
@@ -175,46 +181,58 @@ public class RcScript extends Script {
 
         if (Rs2Inventory.hasDegradedPouch()) {
             repairingPouch = true;
+            Microbot.log("Found degraded pouch, withdraw rune pouch");
             Rs2Bank.withdrawRunePouch();
             sleepGaussian(500, 100);
             Rs2Bank.closeBank();
             sleepUntil(() -> !Rs2Bank.isOpen(), 1200);
             Rs2Magic.repairPouchesWithLunar();
+            Microbot.log("Repaired Pouch with Lunar");
             sleepGaussian(500, 100);
             Rs2Bank.openBank();
             sleepUntil(Rs2Bank::isOpen, 1200);
             Rs2Bank.depositRunePouch();
+            Microbot.log("deposited rune pouch");
             Rs2Bank.closeBank();
             sleepUntil(() -> !Rs2Bank.isOpen(), 700);
         }
 
         if (repairingPouch) {
+            Microbot.log("Filling pouch after repairing.");
             Rs2Tab.switchToInventoryTab();
 
             Rs2Bank.openBank();
             sleepUntil(Rs2Bank::isOpen, 700);
 
             while (Rs2Inventory.getRemainingCapacityInPouches() > 0) {
+                Microbot.log("Current remaining capacity: " + Rs2Inventory.getRemainingCapacityInPouches());
 
                 if (Rs2Bank.isOpen()) {
+                    Microbot.log("After repairing: in while loop: bank is open");
 
                     if (Rs2Inventory.contains(bloodRune)) {
+                        Microbot.log("After repairing: found blood rune, deposit");
 
                         Rs2Bank.depositAll(bloodRune);
                         sleepGaussian(400, 100);
                     }
+                    Microbot.log("After repairing: withdraw all pure essence");
                     Rs2Bank.withdrawAll(pureEss);
 
+                    Microbot.log("Before fill pouches Remaining capacity: " + Rs2Inventory.getRemainingCapacityInPouches());
                     Rs2Inventory.fillPouches();
                     sleepGaussian(400, 100);
                     Rs2Bank.openBank();
                     sleepUntil(Rs2Bank::isOpen, 700);
+                    Microbot.log("After fill pouches Remaining capacity: " + Rs2Inventory.getRemainingCapacityInPouches());
                 }
 
                 if (!Rs2Inventory.isFull()) {
+                    Microbot.log("Inventory is not full in repair state");
 
                     Rs2Bank.withdrawAll(pureEss);
                     sleepUntil(Rs2Inventory::isFull);
+                    Microbot.log("Withdrew all pure essence");
 
                 }
             }
@@ -222,7 +240,9 @@ public class RcScript extends Script {
         else{
 //            while (!Rs2Inventory.allPouchesFull() || !Rs2Inventory.isFull() && isRunning()) {
             while (Rs2Inventory.getRemainingCapacityInPouches() > 0) {
+                Microbot.log("Pouches are not full yet");
                 if (Rs2Bank.isOpen()) {
+                    Microbot.log("Pouches not full, bank open");
 
                     if (Rs2Inventory.contains(bloodRune)) {
                         Rs2Bank.depositAll(bloodRune);
@@ -230,12 +250,15 @@ public class RcScript extends Script {
                     }
                     Rs2Bank.withdrawAll(pureEss);
                     sleepGaussian(400, 100);
+                    Microbot.log("Pouches not fullbank open , withdraw all pure ess");
 
                     Rs2Inventory.fillPouches();
+                    Microbot.log("Pouches not full bank open, filled pouches");
 
                     sleepGaussian(400, 100);
                 }
                 if (!Rs2Inventory.isFull()) {
+                    Microbot.log("Pouches are not full yet, withdraw all pure ess");
 
                     Rs2Bank.withdrawAll(pureEss);
                     sleepUntil(Rs2Inventory::isFull);
@@ -244,6 +267,8 @@ public class RcScript extends Script {
         }
 
         if (Rs2Bank.isOpen() && Rs2Inventory.allPouchesFull() && Rs2Inventory.isFull()) {
+            Microbot.log("We are full, lets go");
+            Microbot.log("Remaining capacity: " + Rs2Inventory.getRemainingCapacityInPouches());
             Rs2Keyboard.keyPress(KeyEvent.VK_ESCAPE);
 
             sleepUntil(() -> !Rs2Bank.isOpen(), 700);
@@ -282,6 +307,7 @@ public class RcScript extends Script {
             state = State.BANKING;
             return;
         } else {
+            Microbot.log("Interacting with fairy ring");
             Rs2GameObject.interact(fairyRing, "Last-destination (DLS)");
             sleepUntil(() -> plugin.getMyWorldPoint().equals(caveFairyRing));
         }
@@ -299,18 +325,18 @@ public class RcScript extends Script {
             BreakHandlerScript.setLockState(true);
         }
 
+        Microbot.log("Current location after waiting: " + plugin.getMyWorldPoint());
         if (plugin.getMyWorldPoint().equals(caveFairyRing)) {
-            sleepGaussian(150, 50);
+            sleepGaussian(300, 100);
             Rs2GameObject.interact(16308, "Enter");
             sleepUntil(() -> Rs2Player.getWorldLocation().equals(firstCaveExit), 1200);
-//            sleepGaussian(150, 50);
+            sleepGaussian(300, 100);
         }
 
         if (plugin.getMyWorldPoint().equals(firstCaveExit)) {
-
-            Rs2Walker.walkTo(rightOutsideBloodRuins);
-            sleepUntil(() -> Rs2Player.getWorldLocation().equals(rightOutsideBloodRuins), 1200);
-//            sleepUntil(() -> isInBloodRuinsArea(plugin.getMyWorldPoint()), 700);
+            Microbot.log("Walking to ruins: " + outsideBloodRuins);
+            Rs2Walker.walkTo(outsideBloodRuins);
+            sleepUntil(() -> isInBloodRuinsArea(plugin.getMyWorldPoint()), 700);
             state = State.CRAFTING;
         }
     }
@@ -321,9 +347,8 @@ public class RcScript extends Script {
         }
 
         Rs2GameObject.interact(bloodRuins, "Enter");
-        sleepUntil(() -> !Rs2Player.isAnimating());
-
-//        /plugin.getMyWorldPoint().getRegionID() == bloodAltarRegion);
+        sleepUntil(() -> !Rs2Player.isAnimating() && plugin.getMyWorldPoint().getRegionID() == bloodAltarRegion);
+        sleepGaussian(250, 75);
         Rs2GameObject.interact(bloodAltar, "Craft-rune");
         Rs2Player.waitForXpDrop(Skill.RUNECRAFT);
         plugin.updateXpGained();
@@ -332,8 +357,9 @@ public class RcScript extends Script {
 
         while (plugin.getMyWorldPoint().getRegionID() == bloodAltarRegion && isRunning()) {
             if (Rs2Inventory.allPouchesEmpty() && !Rs2Inventory.contains("Pure essence")) {
+                Microbot.log("We are in altar region and out of p ess, banking...");
                 handleBankTeleport();
-                sleepGaussian(150, 50);
+                sleepGaussian(200, 50);
             }
         }
         state = State.BANKING;
@@ -341,9 +367,10 @@ public class RcScript extends Script {
 
     private void handleEmptyPouch() {
         while (!Rs2Inventory.allPouchesEmpty() && isRunning()) {
+            Microbot.log("Pouches are not empty. Crafting more");
             Rs2Inventory.emptyPouches();
             Rs2Inventory.waitForInventoryChanges(600);
-            sleepGaussian(150, 50);
+            sleepGaussian(400, 100);
             Rs2GameObject.interact(bloodAltar, "Craft-rune");
             Rs2Player.waitForXpDrop(Skill.RUNECRAFT);
             plugin.updateXpGained();
@@ -354,14 +381,15 @@ public class RcScript extends Script {
         Rs2Tab.switchToInventoryTab();
         sleepGaussian(800, 200);
 
-        Teleports tp = Teleports.CRAFTING_CAPE;
-        Arrays.stream(tp.getItemIds())
-                .filter(Rs2Inventory::contains)
-                .forEach(id -> Rs2Inventory.interact(id, tp.getInteraction()));
-
-        sleepUntil(() -> plugin.getMyWorldPoint()
-                .getRegionID()
-                == tp.getBankingRegionIds()[0]);
+        Teleports craftingCapeTeleport = Teleports.CRAFTING_CAPE;
+        for (Integer id : craftingCapeTeleport.getItemIds()) {
+            if (Rs2Inventory.contains(id)) {
+                if (Rs2Inventory.interact(id, craftingCapeTeleport.getInteraction())) {
+                    return;
+                }
+            }
+        }
         sleepGaussian(400, 100);
+        sleepUntil(() -> plugin.getMyWorldPoint().getRegionID() == craftingCapeTeleport.getBankingRegionIds()[0]);
     }
 }
