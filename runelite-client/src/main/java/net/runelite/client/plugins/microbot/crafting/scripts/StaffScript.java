@@ -2,7 +2,9 @@ package net.runelite.client.plugins.microbot.crafting.scripts;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.runelite.api.Item;
 import net.runelite.api.Skill;
+import net.runelite.api.gameval.ItemID;
 import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.plugins.microbot.Script;
 import net.runelite.client.plugins.microbot.crafting.CraftingConfig;
@@ -40,20 +42,32 @@ public class StaffScript extends Script {
             }
             try {
                 itemToCraft = config.staffType();
+                if (itemToCraft.getItemName().equalsIgnoreCase("AMETHYST")) {
+                    if (Rs2Inventory.hasItem(ItemID.AMETHYST)
+                            && Rs2Inventory.hasItem(ItemID.CHISEL)) {
+                        craftAmethyst(config);
+                    }
+                    if (!Rs2Inventory.hasItem(ItemID.AMETHYST)
+                            && Rs2Inventory.hasItem(ItemID.CHISEL)) {
+                        bankAmethyst(config);
+                    }
+                }
+                else {
+                    if (Rs2Inventory.hasItem(battleStaffID)
+                            && Rs2Inventory.hasItem(itemToCraft.getOrb())) {
+                        craft(config);
+                    }
+                    if (!Rs2Inventory.hasItem(battleStaffID)
+                            || !Rs2Inventory.hasItem(itemToCraft.getOrb())) {
+                        bank(config);
+                    }
+                }
 
-                if (Rs2Inventory.hasItem(battleStaffID)
-                        && Rs2Inventory.hasItem(itemToCraft.getOrb())) {
-                    craft(config);
-                }
-                if (!Rs2Inventory.hasItem(battleStaffID)
-                        || !Rs2Inventory.hasItem(itemToCraft.getOrb())) {
-                    bank(config);
-                }
 
             } catch (Exception ex) {
                 System.out.println(ex.getMessage());
             }
-        }, 0, Rs2Random.randomGaussian(650, 100), TimeUnit.MILLISECONDS);
+        }, 0, Rs2Random.randomGaussian(350, 100), TimeUnit.MILLISECONDS);
     }
 
     private void bank(CraftingConfig config) {
@@ -61,21 +75,48 @@ public class StaffScript extends Script {
         sleepUntil(Rs2Bank::isOpen);
 
         Rs2Bank.depositAll(itemToCraft.getItemName());
-        sleepUntil(() -> Rs2Inventory.contains(itemToCraft.getItemName()));
+        sleepUntil(() -> !Rs2Inventory.contains(itemToCraft.getId()));
+
+        verifyItemInBank(itemToCraft.getOrb());
 
         Rs2Bank.withdrawX(true, battleStaffID, 14);
         sleepUntil(() -> Rs2Inventory.contains(battleStaffID));
 
 
-        verifyItemInBank(itemToCraft.getOrb());
 
         Rs2Bank.withdrawX(true, itemToCraft.getOrb(), 14);
         sleepUntil(() -> Rs2Inventory.contains(itemToCraft.getOrb()));
         sleepGaussian(400, 100); // Slower human deposit/pickup confirmation
         Rs2Bank.closeBank();
     }
+    private void bankAmethyst(CraftingConfig config) {
+        Rs2Bank.openBank();
+        sleepUntil(Rs2Bank::isOpen);
+
+        Rs2Bank.depositAll();
+        sleepUntil(() -> !Rs2Inventory.contains(ItemID.AMETHYST));
+
+        verifyItemInBank(ItemID.AMETHYST);
+
+        Rs2Bank.withdrawAll(ItemID.AMETHYST);
+        sleepUntil(() -> Rs2Inventory.contains(ItemID.AMETHYST));
+
+        sleepGaussian(400, 100); // Slower human deposit/pickup confirmation
+        Rs2Bank.closeBank();
+    }
 
     private void verifyItemInBank(String item) {
+        if (Rs2Bank.isOpen() && !Rs2Bank.hasItem(item)) {
+            sleepGaussian(1200, 500); // small bump to simulate real confusion
+            Microbot.status = "[Shutting down] - Reason: " + item + " not found in the bank.";
+            Microbot.getNotifier().notify(Microbot.status);
+            sleepGaussian(800, 350); // Natural delay before bank closure
+            Rs2Bank.closeBank();
+            sleepGaussian(1400, 600); // Final human pause before shutdown // small bump to simulate real confusion
+            shutdown();
+        }
+    }
+    private void verifyItemInBank(int item) {
         if (Rs2Bank.isOpen() && !Rs2Bank.hasItem(item)) {
             sleepGaussian(1200, 500); // small bump to simulate real confusion
             Microbot.status = "[Shutting down] - Reason: " + item + " not found in the bank.";
@@ -117,6 +158,22 @@ public class StaffScript extends Script {
         sleepGaussian(700, 200); // Natural delay before bank closure
 
     }
+
+    private void craftAmethyst(CraftingConfig config) {
+        maybeHumanIdleBehavior();
+
+        Rs2Inventory.combine(1755, 21347);
+
+        Rs2Widget.sleepUntilHasWidgetText("How many do you wish to make?", 270, 5, false, 5000);
+        Rs2Keyboard.keyPress(KeyEvent.VK_SPACE);
+        sleepGaussian(2500, 500);
+
+        sleepUntil(() -> !Rs2Inventory.hasItem(21347), 60000);
+
+        sleepGaussian(700, 200); // Natural delay before bank closure
+
+    }
+
     private void maybeHumanIdleBehavior() {
         if (Rs2Random.dicePercentage(3.0)) {
             Microbot.log("Checking inventory...");
@@ -127,7 +184,7 @@ public class StaffScript extends Script {
 
         if (Rs2Random.dicePercentage(3)) {
             Microbot.log("Oops, misclicked...");
-            Rs2ItemModel orbItem = Rs2Inventory.get(itemToCraft.getOrb());
+            Rs2ItemModel orbItem = Rs2Inventory.getRandom(itemToCraft.getOrb());
             if (orbItem != null) {
                 Rs2Inventory.hover(orbItem);
                 sleepGaussian(400, 150);
