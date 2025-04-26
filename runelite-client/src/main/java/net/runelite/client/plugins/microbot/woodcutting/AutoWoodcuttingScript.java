@@ -15,8 +15,6 @@ import net.runelite.client.plugins.microbot.util.gameobject.Rs2GameObject;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2Inventory;
 import net.runelite.client.plugins.microbot.util.math.Rs2Random;
 import net.runelite.client.plugins.microbot.util.player.Rs2Player;
-import net.runelite.client.plugins.microbot.util.prayer.Rs2Prayer;
-import net.runelite.client.plugins.microbot.util.prayer.Rs2PrayerEnum;
 import net.runelite.client.plugins.microbot.util.tile.Rs2Tile;
 import net.runelite.client.plugins.microbot.util.walker.Rs2Walker;
 import net.runelite.client.plugins.microbot.util.widget.Rs2Widget;
@@ -28,10 +26,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static net.runelite.api.ItemID.*;
-
 enum State {
-    FIREMAKING,
     RESETTING,
     WOODCUTTING,
 }
@@ -59,9 +54,6 @@ public class AutoWoodcuttingScript extends Script {
         Rs2Antiban.resetAntibanSettings();
         Rs2Antiban.antibanSetupTemplates.applyWoodcuttingSetup();
         initialPlayerLocation = null;
-        if (config.firemakeOnly()){
-            state = State.FIREMAKING;
-        }
         mainScheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
             try {
 
@@ -105,15 +97,8 @@ public class AutoWoodcuttingScript extends Script {
                                 return;
                         }
 
-                        if (Rs2Woodcutting.isWearingAxeWithSpecialAttack()) {
+                        if (Rs2Woodcutting.isWearingAxeWithSpecialAttack())
                             Rs2Combat.setSpecState(true, 1000);
-                            if (Microbot.getClient().getBoostedSkillLevel(Skill.PRAYER) > 0
-                                    && !Rs2Prayer.isPrayerActive(Rs2PrayerEnum.PRESERVE))
-                            {
-                                Rs2Prayer.toggle(Rs2PrayerEnum.PRESERVE, true);
-                                sleepGaussian(200, 50);
-                            }
-                        }
 
                         if (Rs2Inventory.isFull()) {
                             sleepGaussian(700,200);
@@ -134,29 +119,6 @@ public class AutoWoodcuttingScript extends Script {
                             }
                         }
                         break;
-                    case FIREMAKING:
-                        Microbot.log("Starting Firemaking only mode");
-
-                        if (!Rs2Inventory.hasItem(TINDERBOX)) {
-                            Rs2Bank.openBank();
-                            sleepUntil(Rs2Bank::isOpen, 20000);
-                            Rs2Bank.withdrawItem(true,"Tinderbox");
-                        }
-
-                        if (!Rs2Inventory.hasItem(config.TREE().getLog())) {
-                            Microbot.log("Opening bank");
-                            Rs2Bank.openBank();
-                            sleepUntil(Rs2Bank::isOpen, 20000);
-                            Rs2Bank.withdrawAll(config.TREE().getLog());
-                            Rs2Bank.closeBank();
-                            sleep(500, 1200);;
-                        }
-
-                        walkBack(config);
-
-                        state = State.RESETTING;
-                        break;
-
                     case RESETTING:
                         resetInventory(config);
                         break;
@@ -171,7 +133,7 @@ public class AutoWoodcuttingScript extends Script {
     private void resetInventory(AutoWoodcuttingConfig config) {
         switch (config.resetOptions()) {
             case DROP:
-                Rs2Inventory.dropAllExcept(false, config.interactOrder(), "axe", "crystal shard", "Anima-infused bark");
+                Rs2Inventory.dropAllExcept(false, config.interactOrder(), "axe", "crystal shard");
                 state = State.WOODCUTTING;
                 break;
             case BANK:
@@ -188,16 +150,11 @@ public class AutoWoodcuttingScript extends Script {
                 if (Rs2Inventory.contains(config.TREE().getLog())) return;
 
                 walkBack(config);
-
-                if (config.firemakeOnly()){
-                    state = State.FIREMAKING;
-                } else {
-                    state = State.WOODCUTTING;
-                }
+                state = State.WOODCUTTING;
                 break;
             case FLETCH_ARROWSHAFT:
                 fletchArrowShaft(config);
-
+                
                 walkBack(config);
                 state = State.WOODCUTTING;
                 break;
