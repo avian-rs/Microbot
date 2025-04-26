@@ -46,7 +46,6 @@ public class RcScript extends Script {
     public static final int inactiveBloodEssence = ItemID.BLOOD_ESSENCE_INACTIVE;
     public static final int bloodRune = ItemID.BLOODRUNE;
     public static final int colossalPouch = ItemID.RCU_POUCH_COLOSSAL;
-    public static final int runePouch = ItemID.BH_RUNE_POUCH;
 
     private static boolean repairingPouch = false;
 
@@ -114,7 +113,6 @@ public class RcScript extends Script {
         Rs2Antiban.resetAntibanSettings();
         super.shutdown();
         Microbot.log("Script has been stopped");
-        //Rs2Player.logout();
     }
 
     private void checkPouches() {
@@ -381,15 +379,14 @@ public class RcScript extends Script {
         Rs2Tab.switchToInventoryTab();
         sleepGaussian(800, 200);
 
-        Teleports craftingCapeTeleport = Teleports.CRAFTING_CAPE;
-        for (Integer id : craftingCapeTeleport.getItemIds()) {
-            if (Rs2Inventory.contains(id)) {
-                if (Rs2Inventory.interact(id, craftingCapeTeleport.getInteraction())) {
-                    return;
-                }
-            }
-        }
+        Teleports tp = Teleports.CRAFTING_CAPE;
+        Arrays.stream(tp.getItemIds())
+                .filter(Rs2Inventory::contains)
+                .forEach(id -> Rs2Inventory.interact(id, tp.getInteraction()));
+
+        sleepUntil(() -> plugin.getMyWorldPoint()
+                .getRegionID()
+                == tp.getBankingRegionIds()[0]);
         sleepGaussian(400, 100);
-        sleepUntil(() -> plugin.getMyWorldPoint().getRegionID() == craftingCapeTeleport.getBankingRegionIds()[0]);
     }
 }
