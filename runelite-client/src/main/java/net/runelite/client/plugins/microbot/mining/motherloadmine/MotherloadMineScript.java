@@ -288,14 +288,14 @@ public class MotherloadMineScript extends Script
         {
             sleepUntil(Rs2Bank::isOpen);
             Rs2Bank.depositAllExcept("hammer", pickaxeName);
-            sleep(100, 300);
+            sleepGaussian(500,100);
 
             if (!Rs2Inventory.hasItem("hammer"))
             {
                 if (!Rs2Bank.hasItem("hammer"))
                 {
                     Microbot.showMessage("No hammer found in the bank.");
-                    sleep(5000);
+                    sleepGaussian(3000,200);
                     return;
                 }
                 Rs2Bank.withdrawOne("hammer", true);
@@ -305,7 +305,7 @@ public class MotherloadMineScript extends Script
             {
                 Rs2Bank.withdrawOne(pickaxeName);
             }
-            sleep(600);
+            sleepGaussian(500, 100);
         }
         status = MLMStatus.IDLE;
     }
