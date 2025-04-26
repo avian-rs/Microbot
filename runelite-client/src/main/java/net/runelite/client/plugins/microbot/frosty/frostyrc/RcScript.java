@@ -1,4 +1,4 @@
-package net.runelite.client.plugins.microbot.frosty.bloods;
+package net.runelite.client.plugins.microbot.frosty.frostyrc;
 
 import net.runelite.api.*;
 import net.runelite.api.coords.WorldPoint;
@@ -7,21 +7,17 @@ import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.plugins.microbot.Script;
 import net.runelite.api.gameval.ItemID;
 import net.runelite.api.gameval.ObjectID;
-import net.runelite.client.plugins.microbot.frosty.bloods.enums.State;
+import net.runelite.client.plugins.microbot.frosty.frostyrc.enums.State;
 import net.runelite.client.plugins.microbot.breakhandler.BreakHandlerScript;
-import net.runelite.client.plugins.microbot.frosty.bloods.enums.Teleports;
+import net.runelite.client.plugins.microbot.frosty.frostyrc.enums.Teleports;
 import net.runelite.client.plugins.microbot.util.antiban.Rs2Antiban;
-import net.runelite.client.plugins.microbot.util.antiban.Rs2AntibanSettings;
-import net.runelite.client.plugins.microbot.util.antiban.enums.Activity;
 import net.runelite.client.plugins.microbot.util.bank.Rs2Bank;
-import net.runelite.client.plugins.microbot.util.camera.Rs2Camera;
 import net.runelite.client.plugins.microbot.util.equipment.Rs2Equipment;
 import net.runelite.client.plugins.microbot.util.gameobject.Rs2GameObject;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2Inventory;
 import net.runelite.client.plugins.microbot.util.keyboard.Rs2Keyboard;
 import net.runelite.client.plugins.microbot.util.magic.Rs2Magic;
 import net.runelite.client.plugins.microbot.util.math.Rs2Random;
-import net.runelite.client.plugins.microbot.util.npc.Rs2Npc;
 import net.runelite.client.plugins.microbot.util.player.Rs2Player;
 import net.runelite.client.plugins.microbot.util.tabs.Rs2Tab;
 import net.runelite.client.plugins.microbot.util.walker.Rs2Walker;
@@ -31,14 +27,13 @@ import java.awt.event.KeyEvent;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-public class BloodsScript extends Script {
-    private final BloodsPlugin plugin;
+public class RcScript extends Script {
+    private final RcPlugin plugin;
     public static State state;
 
     private final WorldPoint caveFairyRing = new WorldPoint(3447, 9824, 0);
     private final WorldPoint firstCaveExit = new WorldPoint(3460, 9813, 0);
     private final WorldPoint outsideBloodRuins = new WorldPoint(3558, 9779, 0);
-//    private final ArrayList<WorldPoint> outsideBloodRuinsArray = new ArrayList<>();
 
     public static final int questCapeTeleportRegion = 10804;
     public static final int bloodAltarRegion = 12875;
@@ -51,17 +46,16 @@ public class BloodsScript extends Script {
     public static final int inactiveBloodEssence = ItemID.BLOOD_ESSENCE_INACTIVE;
     public static final int bloodRune = ItemID.BLOODRUNE;
     public static final int colossalPouch = ItemID.RCU_POUCH_COLOSSAL;
-    public static final int runePouch = ItemID.BH_RUNE_POUCH;
 
     private static boolean repairingPouch = false;
 
     @Inject
-    public BloodsScript(BloodsPlugin plugin) {
+    public RcScript(RcPlugin plugin) {
         this.plugin = plugin;
     }
 
     @Inject
-    private BloodsConfig config;
+    private RcConfig config;
     @Inject
     private Client client;
     @Inject
@@ -119,7 +113,6 @@ public class BloodsScript extends Script {
         Rs2Antiban.resetAntibanSettings();
         super.shutdown();
         Microbot.log("Script has been stopped");
-        //Rs2Player.logout();
     }
 
     private void checkPouches() {
@@ -130,7 +123,7 @@ public class BloodsScript extends Script {
     private void handleBanking() {
         int currentRegion = plugin.getMyWorldPoint().getRegionID();
 
-        if (!Teleports.EDGEVILLE_TELEPORT.matchesRegion(currentRegion)) {
+        if (!Teleports.CRAFTING_CAPE.matchesRegion(currentRegion)) {
             Microbot.log("Not in banking region, teleporting");
             handleBankTeleport();
         }
@@ -151,8 +144,7 @@ public class BloodsScript extends Script {
                         || !Rs2Inventory.contains(colossalPouch)
                         || !Rs2Inventory.contains(pureEss))) {
             Microbot.log("Opening bank");
-//            Rs2Bank.openBank(Rs2GameObject.findObjectByLocation(new WorldPoint(3095, 3491, 0)));
-        Rs2Bank.openBank();
+            Rs2Bank.openBank();
             sleepUntil(Rs2Bank::isOpen, 2500);
             sleepGaussian(400, 100);
         }
@@ -178,7 +170,7 @@ public class BloodsScript extends Script {
                 Microbot.log("Activating blood essence");
                 sleepGaussian(500, 100);
                 Rs2Bank.openBank();
-                sleepUntil(() -> Rs2Bank.isOpen(), 1200);
+                sleepUntil(Rs2Bank::isOpen, 1200);
             } else {
                 Rs2Bank.withdrawItem(activeBloodEssence);
                 sleepGaussian(500, 100);
@@ -384,15 +376,17 @@ public class BloodsScript extends Script {
     }
 
     private void handleBankTeleport() {
-        Rs2Tab.switchToEquipmentTab();
-        sleepGaussian(400, 100);
+        Rs2Tab.switchToInventoryTab();
+        sleepGaussian(800, 200);
 
-        Teleports edgevilleTeleport = Teleports.EDGEVILLE_TELEPORT;
-        Optional<Integer> rodId = Arrays.stream(edgevilleTeleport.getItemIds())
-                .filter(Rs2Equipment::isWearing)
-                .findFirst();
+        Teleports tp = Teleports.CRAFTING_CAPE;
+        Arrays.stream(tp.getItemIds())
+                .filter(Rs2Inventory::contains)
+                .forEach(id -> Rs2Inventory.interact(id, tp.getInteraction()));
+
+        sleepUntil(() -> plugin.getMyWorldPoint()
+                .getRegionID()
+                == tp.getBankingRegionIds()[0]);
         sleepGaussian(400, 100);
-        rodId.ifPresent(id -> Rs2Equipment.interact(id, edgevilleTeleport.getInteraction()));
-        sleepUntil(() -> plugin.getMyWorldPoint().getRegionID() == edgevilleTeleport.getBankingRegionIds()[0]);
     }
 }
