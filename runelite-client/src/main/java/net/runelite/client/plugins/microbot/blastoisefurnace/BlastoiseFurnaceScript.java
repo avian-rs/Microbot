@@ -16,6 +16,9 @@ import net.runelite.client.plugins.microbot.util.antiban.Rs2AntibanSettings;
 
 import net.runelite.api.ItemID;
 import net.runelite.api.ObjectID;
+import net.runelite.client.plugins.microbot.util.dialogues.Rs2Dialogue;
+import net.runelite.client.plugins.microbot.util.npc.Rs2Npc;
+import net.runelite.client.plugins.microbot.util.npc.Rs2NpcModel;
 import net.runelite.api.Varbits;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.plugins.microbot.Microbot;
@@ -88,8 +91,6 @@ public class BlastoiseFurnaceScript extends Script {
                     return;
                 }
 
-
-                boolean hasGauntlets;
                 switch (state) {
                     case BANKING:
                         Microbot.status = "Banking";
@@ -114,12 +115,13 @@ public class BlastoiseFurnaceScript extends Script {
                         }
 
                         if (!this.hasRequiredOresForSmithing()) {
-                            System.err.println("Out of ores.");
+                            Microbot.log("Out of ores. Walking you out for coffer safety");
+                            Rs2Walker.walkTo(new WorldPoint(2930, 10196, 0));
                             Rs2Player.logout();
                             this.shutdown();
                         }
 
-                        if (!Rs2Player.hasStaminaBuffActive() && Microbot.getClient().getEnergy() < 4100) {
+                        if (!Rs2Player.hasStaminaBuffActive() && Microbot.getClient().getEnergy() < 6100) {
                             this.useStaminaPotions();
                         }
 
@@ -150,6 +152,33 @@ public class BlastoiseFurnaceScript extends Script {
 
         }, 0, Rs2Random.randomGaussian(650, 100), TimeUnit.MILLISECONDS);
         return true;
+    }
+
+    private void handleTax() {
+        Microbot.log("Paying noob smithing tax");
+        if (!Rs2Bank.isOpen()) {
+            Microbot.log("Opening bank");
+            Rs2Bank.openBank();
+            sleepUntil(Rs2Bank::isOpen, 20000);
+        }
+        Rs2Bank.depositOne(config.getBars().getPrimaryOre());
+        sleep(500, 1200);
+        Rs2Bank.depositOne(ItemID.COAL);
+        sleep(500, 1200);
+        Rs2Bank.withdrawX(ItemID.COINS_995,2500);
+        sleep(500, 1200);
+        Rs2Bank.closeBank();
+        sleep(500, 1200);
+        Rs2NpcModel blastie = Rs2Npc.getNpc("Blast Furnace Foreman");
+        Rs2Npc.interact(blastie, "Pay");
+        sleepUntil(Rs2Dialogue::isInDialogue,10000);
+        if (Rs2Dialogue.hasSelectAnOption()) {
+            Rs2Dialogue.clickOption("Yes");
+            sleep(1000, 1850);
+            Rs2Dialogue.clickContinue();
+            sleep(500, 1300);
+
+        }
     }
 
     private void handleDispenserLooting() {
@@ -198,18 +227,19 @@ public class BlastoiseFurnaceScript extends Script {
         int primaryOre = this.config.getBars().getPrimaryOre();
         if (!Rs2Inventory.hasItem(primaryOre)) {
             Rs2Bank.withdrawAll(primaryOre);
+            sleepGaussian(500,100);
             return;
         }
 
         boolean fullCoalBag = Rs2Inventory.interact(coalBag, "Fill");
         if (!fullCoalBag)
             return;
-        sleepGaussian(300,100);
+        sleepGaussian(500,100);
         depositOre();
         Rs2Walker.walkFastCanvas(BlastoiseFurnaceScript.getRandomWeightedPoint());
         sleepGaussian(1700,400);
         sleepUntil(() -> barsInDispenser(config.getBars()) > 0, 10000);
-        sleepGaussian(300,100);
+        sleepGaussian(500,100);
     }
 
     private void retrievePrimary() {
@@ -234,7 +264,6 @@ public class BlastoiseFurnaceScript extends Script {
 
         int randomWeight = Rs2Random.nextInt(1, totalWeight, 1.0, true);
         int currentSum = 0;
-        Microbot.log("randomWeight: " + randomWeight);
         for (Map.Entry<WorldPoint, Integer> entry : pointWeights.entrySet()) {
             currentSum += entry.getValue();
             if (randomWeight <= currentSum) {
@@ -398,8 +427,8 @@ public class BlastoiseFurnaceScript extends Script {
         boolean usedPotion = false;
 
         // Step 2: If energy is above 71% but below 81%, use Stamina potion if no stamina buff is active
-        if (Microbot.getClient().getEnergy() < 4100 && !Rs2Player.hasStaminaBuffActive()) {
-            usedPotion = usePotionIfNeeded(12631, 4100);
+        if (Microbot.getClient().getEnergy() < 6100 && !Rs2Player.hasStaminaBuffActive()) {
+            usedPotion = usePotionIfNeeded(12631, 6100);
         }
 
         // Sleep after using a potion
@@ -457,7 +486,12 @@ public class BlastoiseFurnaceScript extends Script {
     private void depositOre() {
         Rs2GameObject.interact(ObjectID.CONVEYOR_BELT, "Put-ore-on");
         Rs2Inventory.waitForInventoryChanges(10000);
-
+        if(Rs2Dialogue.hasDialogueText("You must ask the foreman's")){
+            Microbot.log("Need to pay the noob tax");
+            handleTax();
+            Rs2GameObject.interact(ObjectID.CONVEYOR_BELT, "Put-ore-on");
+            Rs2Inventory.waitForInventoryChanges(10000);
+        }
         if (this.config.getBars().isRequiresCoalBag()) {
             if (Rs2Equipment.isWearing(9795)) {
                 Rs2Inventory.interact(coalBag, "Empty");
