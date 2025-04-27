@@ -118,17 +118,17 @@ public class AntibanSetupTemplates {
         Rs2AntibanSettings.dynamicIntensity = false;
         Rs2AntibanSettings.dynamicActivity = false;
         Rs2AntibanSettings.devDebug = false;
-        Rs2AntibanSettings.takeMicroBreaks = false;
+        Rs2AntibanSettings.takeMicroBreaks = true;
         Rs2AntibanSettings.playSchedule = false;
         Rs2AntibanSettings.universalAntiban = true;
         Rs2AntibanSettings.microBreakDurationLow = 3;
-        Rs2AntibanSettings.microBreakDurationHigh = 8;
+        Rs2AntibanSettings.microBreakDurationHigh = 10;
         Rs2AntibanSettings.actionCooldownChance = 1.00;
-        Rs2AntibanSettings.microBreakChance = 0.05;
+        Rs2AntibanSettings.microBreakChance = 0.01;
         Rs2AntibanSettings.moveMouseOffScreen = true;
         Rs2AntibanSettings.moveMouseOffScreenChance = 0.10;
         Rs2AntibanSettings.moveMouseRandomly = true;
-        Rs2AntibanSettings.moveMouseRandomlyChance = 0.30;
+        Rs2AntibanSettings.moveMouseRandomlyChance = 0.25;
         Rs2Antiban.setActivityIntensity(ActivityIntensity.LOW);
         Rs2Antiban.setActivity(Activity.CRAFTING_BLOODS_TRUE_ALTAR);
     }
