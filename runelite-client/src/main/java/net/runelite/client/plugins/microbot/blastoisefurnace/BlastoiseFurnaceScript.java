@@ -9,6 +9,7 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
+import net.runelite.api.Skill;
 import net.runelite.api.widgets.ComponentID;
 import net.runelite.client.plugins.microbot.shortestpath.ShortestPathPlugin;
 import net.runelite.client.plugins.microbot.util.antiban.Rs2Antiban;
@@ -121,7 +122,11 @@ public class BlastoiseFurnaceScript extends Script {
                             this.shutdown();
                         }
 
-                        if (!Rs2Player.hasStaminaBuffActive() && Microbot.getClient().getEnergy() < 6100) {
+                        if (!Rs2Player.hasStaminaBuffActive()
+                                && Microbot.getClient().getEnergy() < 4100) {
+                            if (Rs2Player.getRealSkillLevel(Skill.SMITHING) > 60) {
+                                simulateRandomBreak();
+                            }
                             this.useStaminaPotions();
                         }
 
@@ -162,21 +167,21 @@ public class BlastoiseFurnaceScript extends Script {
             sleepUntil(Rs2Bank::isOpen, 20000);
         }
         Rs2Bank.depositOne(config.getBars().getPrimaryOre());
-        sleep(500, 1200);
+        sleepGaussian(400, 100);
         Rs2Bank.depositOne(ItemID.COAL);
-        sleep(500, 1200);
+        sleepGaussian(400, 100);
         Rs2Bank.withdrawX(ItemID.COINS_995,2500);
-        sleep(500, 1200);
+        sleepGaussian(400, 100);
         Rs2Bank.closeBank();
-        sleep(500, 1200);
+        sleepGaussian(400, 100);
         Rs2NpcModel blastie = Rs2Npc.getNpc("Blast Furnace Foreman");
         Rs2Npc.interact(blastie, "Pay");
         sleepUntil(Rs2Dialogue::isInDialogue,10000);
         if (Rs2Dialogue.hasSelectAnOption()) {
             Rs2Dialogue.clickOption("Yes");
-            sleep(1000, 1850);
+            sleepGaussian(400, 100);
             Rs2Dialogue.clickContinue();
-            sleep(500, 1300);
+            sleepGaussian(400, 100);
 
         }
     }
@@ -227,19 +232,19 @@ public class BlastoiseFurnaceScript extends Script {
         int primaryOre = this.config.getBars().getPrimaryOre();
         if (!Rs2Inventory.hasItem(primaryOre)) {
             Rs2Bank.withdrawAll(primaryOre);
-            sleepGaussian(500,100);
+            sleepGaussian(400, 100);
             return;
         }
 
         boolean fullCoalBag = Rs2Inventory.interact(coalBag, "Fill");
         if (!fullCoalBag)
             return;
-        sleepGaussian(500,100);
+        sleepGaussian(400, 100);
         depositOre();
         Rs2Walker.walkFastCanvas(BlastoiseFurnaceScript.getRandomWeightedPoint());
-        sleepGaussian(1700,400);
+        sleepGaussian(1000,400);
         sleepUntil(() -> barsInDispenser(config.getBars()) > 0, 10000);
-        sleepGaussian(500,100);
+        sleepGaussian(400, 100);
     }
 
     private void retrievePrimary() {
@@ -251,9 +256,9 @@ public class BlastoiseFurnaceScript extends Script {
         depositOre();
 
         Rs2Walker.walkFastCanvas(BlastoiseFurnaceScript.getRandomWeightedPoint());
-        sleepGaussian(1700,400);
+        sleepGaussian(1000,400);
         sleepUntil(() -> barsInDispenser(this.config.getBars()) > 0, 10000);
-        sleepGaussian(300,100);
+        sleepGaussian(200,100);
     }
 
     public static WorldPoint getRandomWeightedPoint() {
@@ -427,8 +432,8 @@ public class BlastoiseFurnaceScript extends Script {
         boolean usedPotion = false;
 
         // Step 2: If energy is above 71% but below 81%, use Stamina potion if no stamina buff is active
-        if (Microbot.getClient().getEnergy() < 6100 && !Rs2Player.hasStaminaBuffActive()) {
-            usedPotion = usePotionIfNeeded(12631, 6100);
+        if (Microbot.getClient().getEnergy() < 4100 && !Rs2Player.hasStaminaBuffActive()) {
+            usedPotion = usePotionIfNeeded(12631, 4100);
         }
 
         // Sleep after using a potion
@@ -551,10 +556,22 @@ public class BlastoiseFurnaceScript extends Script {
 
 
 
-    private void applyAntiBanSettings() {
-        Rs2AntibanSettings.antibanEnabled = true;
-        Rs2AntibanSettings.naturalMouse = true;
-        Rs2AntibanSettings.devDebug = true;
+    /**
+     * Occasionally takes a break by climbing stairs, idling, then returning.
+     */
+    private void simulateRandomBreak()
+    {
+        if (Rs2Random.nextInt(1, 1000, 1.0, false) <= 69)
+        {
+            Microbot.log("==========TAKING A QUICK BREAK=========");
+            Rs2GameObject.interact(9138, "Climb-up");
+            Rs2Player.waitForAnimation();
+            sleepUntil(() -> !Rs2Player.isAnimating());
+            sleepGaussian(105000, 30000);
+            Rs2GameObject.interact(9084, "Climb-down");
+            Rs2Player.waitForAnimation();
+            sleepUntil(() -> !Rs2Player.isAnimating());
+        }
     }
 
 
