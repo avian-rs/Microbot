@@ -10,7 +10,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 import net.runelite.api.Skill;
-import net.runelite.api.widgets.ComponentID;
 import net.runelite.client.plugins.microbot.shortestpath.ShortestPathPlugin;
 import net.runelite.client.plugins.microbot.util.antiban.Rs2Antiban;
 import net.runelite.client.plugins.microbot.util.antiban.Rs2AntibanSettings;
@@ -123,7 +122,7 @@ public class BlastoiseFurnaceScript extends Script {
                         }
 
                         if (!Rs2Player.hasStaminaBuffActive()
-                                && Microbot.getClient().getEnergy() < 4100) {
+                                && Microbot.getClient().getEnergy() < 5100) {
                             if (Rs2Player.getRealSkillLevel(Skill.SMITHING) > 60) {
                                 simulateRandomBreak();
                             }
@@ -432,8 +431,8 @@ public class BlastoiseFurnaceScript extends Script {
         boolean usedPotion = false;
 
         // Step 2: If energy is above 71% but below 81%, use Stamina potion if no stamina buff is active
-        if (Microbot.getClient().getEnergy() < 4100 && !Rs2Player.hasStaminaBuffActive()) {
-            usedPotion = usePotionIfNeeded(12631, 4100);
+        if (Microbot.getClient().getEnergy() < 5100 && !Rs2Player.hasStaminaBuffActive()) {
+            usedPotion = usePotionIfNeeded(12631, 5100);
         }
 
         // Sleep after using a potion
