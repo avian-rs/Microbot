@@ -16,6 +16,7 @@ import net.runelite.client.plugins.microbot.util.antiban.enums.ActivityIntensity
 import net.runelite.client.plugins.microbot.util.bank.Rs2Bank;
 import net.runelite.client.plugins.microbot.util.camera.Rs2Camera;
 import net.runelite.client.plugins.microbot.util.combat.Rs2Combat;
+import net.runelite.client.plugins.microbot.util.depositbox.Rs2DepositBox;
 import net.runelite.client.plugins.microbot.util.equipment.Rs2Equipment;
 import net.runelite.client.plugins.microbot.util.gameobject.Rs2GameObject;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2Inventory;
@@ -134,7 +135,23 @@ public class MotherloadMineScript extends Script
             Rs2Combat.setSpecState(true, 1000);
         }
     }
+    /**
+     * @return how many pay-dirt are in your sack right now
+     */
+    private int getCurrentSackFill()
+    {
+        // Microbot.getVarbitValue just wraps client.getVarbitValue(...)
+        return Microbot.getVarbitValue(Varbits.SACK_NUMBER);
+    }
 
+//    /**
+//     * @return the max capacity of your sack (81 or 162)
+//     */
+//    private int getSackCapacity()
+//    {
+//        boolean upgraded = Microbot.getVarbitValue(Varbits.SACK_UPGRADED) == 1;
+//        return upgraded ? SACK_LARGE_SIZE : SACK_SIZE;
+//    }
     private void determineStatusFromInventory()
     {
         updateSackSize();
@@ -160,7 +177,7 @@ public class MotherloadMineScript extends Script
             resetMiningState();
             if (Rs2Inventory.hasItem(ItemID.PAYDIRT))
             {
-                if (Rs2GameObject.getGameObjects(ObjectID.BROKEN_STRUT).size() > 1 && Rs2Inventory.hasItem("hammer"))
+                if (Rs2GameObject.getGameObjects(ObjectID.BROKEN_STRUT).size() > 1 && Rs2Inventory.hasItem("hammer") && getCurrentSackFill() > 81)
                 {
                     status = MLMStatus.FIXING_WATERWHEEL;
                 }
@@ -227,7 +244,7 @@ public class MotherloadMineScript extends Script
             }
             if (hasOreInInventory())
             {
-                bankItems();
+                bankOres();
             }
         }
 
@@ -282,6 +299,24 @@ public class MotherloadMineScript extends Script
         }
     }
 
+
+    private void bankOres()
+    {
+        // 1. Walk to & open the nearest deposit box
+        if (!Rs2DepositBox.walkToAndUseDepositBox())
+        {
+            return;
+        }
+
+        // 2. Deposit everything & wait until the inventory actually changes
+        Rs2Inventory.waitForInventoryChanges(Rs2DepositBox::depositAll);
+
+        // 3. Close the deposit‐box interface
+        Rs2DepositBox.closeDepositBox();
+
+        // 4. Reset back to mining
+        status = MLMStatus.IDLE;
+    }
     private void bankItems()
     {
         if (Rs2Bank.useBank())

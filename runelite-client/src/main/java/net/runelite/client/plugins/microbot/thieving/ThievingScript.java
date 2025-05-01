@@ -8,6 +8,7 @@ import net.runelite.client.game.npcoverlay.HighlightedNpc;
 import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.plugins.microbot.Script;
 import net.runelite.client.plugins.microbot.thieving.enums.ThievingNpc;
+import net.runelite.client.plugins.microbot.util.antiban.Rs2Antiban;
 import net.runelite.client.plugins.microbot.util.bank.Rs2Bank;
 import net.runelite.client.plugins.microbot.util.bank.enums.BankLocation;
 import net.runelite.client.plugins.microbot.util.equipment.Rs2Equipment;
@@ -33,6 +34,10 @@ public class ThievingScript extends Script {
     public boolean run(ThievingConfig config) {
         this.config = config;
         Microbot.isCantReachTargetDetectionEnabled = true;
+        Microbot.enableAutoRunOn = false;
+        Rs2Antiban.resetAntibanSettings();
+        Rs2Antiban.antibanSetupTemplates.applySmithingSetup();
+
         mainScheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
             try {
                 if (!Microbot.isLoggedIn()) return;
@@ -116,11 +121,11 @@ public class ThievingScript extends Script {
         if (highlightedNpcs.isEmpty()) {
             if (Rs2Npc.pickpocket(npc)) {
                 Rs2Walker.setTarget(null);
-                sleep(50, 250);
+            sleepGaussian(150, 50);
             }
         } else {
             if (Rs2Npc.pickpocket(highlightedNpcs)) {
-                sleep(50, 250);
+                sleepGaussian(150, 50);
             }
         }
     }
@@ -134,7 +139,7 @@ public class ThievingScript extends Script {
 
     private void wearDodgyNecklace() {
         if (!Rs2Equipment.isWearing("dodgy necklace")) {
-            Rs2Inventory.wield("dodgy necklace");
+            Rs2Inventory.wear("dodgy necklace");
         }
     }
 
@@ -192,7 +197,7 @@ public class ThievingScript extends Script {
                     Rs2Walker.walkTo(initialPlayerLocation);
                 } else if (Rs2Npc.pickpocket(config.THIEVING_NPC().getName())) {
                     Rs2Walker.setTarget(null);
-                    sleep(50, 250);
+                    sleepGaussian(150, 50);
                 }
             } else {
                 if (Rs2Npc.pickpocket(highlightedNpcs)) {
@@ -285,6 +290,7 @@ public class ThievingScript extends Script {
             doNotDropItemList.add("Fire rune");
             doNotDropItemList.add("Earth rune");
             doNotDropItemList.add("Cosmic rune");
+            doNotDropItemList.add("Rune pouch");
         }
         Rs2Inventory.dropAllExcept(config.keepItemsAboveValue(), doNotDropItemList);
     }
