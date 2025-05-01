@@ -36,6 +36,7 @@ import net.runelite.client.plugins.microbot.util.walker.Rs2Walker;
 import net.runelite.client.plugins.microbot.util.widget.Rs2Widget;
 
 import static net.runelite.api.ItemID.COAL;
+import static net.runelite.api.gameval.ItemID.COAL_BAG;
 
 public class BlastoiseFurnaceScript extends Script {
     static final int BAR_DISPENSER = 9092;
@@ -72,89 +73,79 @@ public class BlastoiseFurnaceScript extends Script {
     }
 
     public boolean run(BlastoiseFurnaceConfig config) {
-        staminaTimer = 0;
         this.config = config;
-        Microbot.enableAutoRunOn = false;
         state = State.BANKING;
-        primaryOreEmpty = !Rs2Inventory.hasItem(config.getBars().getPrimaryOre());
-        secondaryOreEmpty = !Rs2Inventory.hasItem(config.getBars().getSecondaryOre());
-        Rs2Antiban.resetAntibanSettings();
-        Rs2Antiban.antibanSetupTemplates.applySmithingSetup();
 
         this.mainScheduledFuture = this.scheduledExecutorService.scheduleWithFixedDelay(() -> {
-            try {
-                if (!Microbot.isLoggedIn()) {
-                    return;
-                }
+                    if (!Microbot.isLoggedIn() || !super.run())
+                        return;
 
-                if (!super.run()) {
-                    return;
-                }
+                    switch (state) {
+                        case BANKING:
+                            Microbot.status = "Banking";
 
-                switch (state) {
-                    case BANKING:
-                        Microbot.status = "Banking";
-                        if (!Rs2Bank.isOpen()) {
-                            System.out.println("Opening bank");
-                            Rs2Bank.openBank();
-                            sleepUntil(Rs2Bank::isOpen, 20000);
-                        }
+                            // 1) Open bank
+                            if (!Rs2Bank.isOpen()) {
+                                Rs2Bank.openBank();
+                                sleepUntil(Rs2Bank::isOpen, 20_000);
+                            }
 
-                        if (config.getBars().isRequiresCoalBag() && !Rs2Inventory.contains(coalBag)) {
-                            if (!Rs2Bank.hasItem(coalBag)) {
-                                Microbot.showMessage("No coal bag found in inventory and bank.");
-                                this.shutdown();
+                            // 2) Withdraw coal bag if needed
+                            if (config.getBars().isRequiresCoalBag() && !Rs2Inventory.contains(COAL_BAG)) {
+                                if (!Rs2Bank.hasItem(COAL_BAG)) {
+                                    Microbot.showMessage("No coal bag found.");
+                                    shutdown();
+                                    return;
+                                }
+                                Rs2Bank.withdrawItem(COAL_BAG);
+                            }
+
+                            // 3) Deposit bars but keep potion & vial
+                            if (Rs2Inventory.hasItem("bar")) {
+                                Rs2Bank.depositAllExcept(
+                                        COAL_BAG,
+                                        ItemID.STAMINA_POTION1,
+                                        ItemID.VIAL
+                                );
+                            }
+
+                            // 4) Out of ores?
+                            if (!hasRequiredOresForSmithing()) {
+                                Rs2Walker.walkTo(new WorldPoint(2930, 10196, 0));
+                                Rs2Player.logout();
+                                shutdown();
                                 return;
                             }
 
-                            Rs2Bank.withdrawItem(coalBag);
-                        }
-
-                        if (Rs2Inventory.hasItem("bar")) {
-                            Rs2Bank.depositAllExcept(coalBag, ItemID.ICE_GLOVES, ItemID.SMITHS_GLOVES_I);
-                        }
-
-                        if (!this.hasRequiredOresForSmithing()) {
-                            Microbot.log("Out of ores. Walking you out for coffer safety");
-                            Rs2Walker.walkTo(new WorldPoint(2930, 10196, 0));
-                            Rs2Player.logout();
-                            this.shutdown();
-                        }
-
-                        if (!Rs2Player.hasStaminaBuffActive()
-                                && Microbot.getClient().getEnergy() < 5100) {
-                            if (Rs2Player.getRealSkillLevel(Skill.SMITHING) > 60) {
-                                simulateRandomBreak();
+                            // 5) **Single** energy+buff check
+                            if (Microbot.getClient().getEnergy() < 7100
+                                    && !Rs2Player.hasStaminaBuffActive()) {
+                                if (useStaminaPotions()) {
+                                    // we drank → bail out so that next tick handles ore-withdraw
+                                    return;
+                                }
                             }
-                            this.useStaminaPotions();
-                        }
 
-                        // Check here if dispenser contains bars. If so we need to clean-up
-                        if (dispenserContainsBars()) {
-                            Rs2Bank.depositAllExcept(coalBag, ItemID.ICE_GLOVES, ItemID.SMITHS_GLOVES_I);
-                            handleDispenserLooting();
-                            return;
-                        }else {
-                            this.retrieveItemsForCurrentFurnaceInteraction();
-                            state = State.SMITHING;
-                        }
-                        break;
-                    case SMITHING:
-                        System.out.println("clicking conveyor");
+                            // 6) Normal dispenser / smithing flow…
+                            if (dispenserContainsBars()) {
+                                handleDispenserLooting();
+                            } else {
+                                retrieveItemsForCurrentFurnaceInteraction();
+                                state = State.SMITHING;
+                            }
+                            break;
 
-                        if (barsInDispenser(config.getBars()) > 0) {
-                            handleDispenserLooting();
-                        }
+                        case SMITHING:
+                            if (barsInDispenser(config.getBars()) > 0)
+                                handleDispenserLooting();
+                            state = State.BANKING;
+                            break;
+                    }
+                },
+                0,
+                Rs2Random.randomGaussian(650, 100),
+                TimeUnit.MILLISECONDS);
 
-                        state = State.BANKING;
-                        break;
-                }
-            } catch (Exception ex) {
-
-                Microbot.logStackTrace(this.getClass().getSimpleName(), ex);
-            }
-
-        }, 0, Rs2Random.randomGaussian(650, 100), TimeUnit.MILLISECONDS);
         return true;
     }
 
@@ -425,21 +416,51 @@ public class BlastoiseFurnaceScript extends Script {
         }
 
     }
+    /**
+     * Withdraw & drink exactly one 1-dose pot.
+     * No energy/buff checks here – they’re done once in BANKING.
+     * @return true if a pot was pulled & drunk
+     */
+    private boolean useStaminaPotions()
+    {
+        final int POT = ItemID.STAMINA_POTION1; // 12631
 
-    private void useStaminaPotions() {
-
-        boolean usedPotion = false;
-
-        // Step 2: If energy is above 71% but below 81%, use Stamina potion if no stamina buff is active
-        if (Microbot.getClient().getEnergy() < 5100 && !Rs2Player.hasStaminaBuffActive()) {
-            usedPotion = usePotionIfNeeded(12631, 5100);
+        if (!Rs2Bank.hasItem(POT))
+        {
+            Microbot.log("No 1-dose stamina pots left!");
+            return false;
         }
 
-        // Sleep after using a potion
-        if (usedPotion) {
-            sleepGaussian(250,50);
+        Rs2Bank.withdrawOne(POT);
+        sleepGaussian(650, 150);
+
+        if (Rs2Inventory.interact(POT, "Drink"))
+        {
+            sleepUntil(Rs2Player::hasStaminaBuffActive, 5_000);
+            if (Rs2Inventory.hasItem(ItemID.VIAL))
+            {
+                Rs2Bank.depositOne(ItemID.VIAL);
+            }
+            Microbot.log("Drank stamina pot.");
+            return true;
         }
+
+        return false;
     }
+//    private void useStaminaPotions(int energyThreshold) {
+//
+//        boolean usedPotion = false;
+//
+//        // Step 2: If energy is above 71% but below 81%, use Stamina potion if no stamina buff is active
+//        if (Microbot.getClient().getEnergy() < energyThreshold && !Rs2Player.hasStaminaBuffActive()) {
+//            usedPotion = usePotionIfNeeded(12631, energyThreshold);
+//        }
+//
+//        // Sleep after using a potion
+//        if (usedPotion) {
+//            sleepGaussian(250,50);
+//        }
+//    }
 
     private boolean usePotionIfNeeded(int id, int energyThreshold) {
         if (Microbot.getClient().getEnergy() < energyThreshold) {
@@ -560,7 +581,7 @@ public class BlastoiseFurnaceScript extends Script {
      */
     private void simulateRandomBreak()
     {
-        if (Rs2Random.nextInt(1, 1000, 1.0, false) <= 69)
+        if (Rs2Random.nextInt(1, 100, 1.0, false) <= 1)
         {
             Microbot.log("==========TAKING A QUICK BREAK=========");
             Rs2GameObject.interact(9138, "Climb-up");
