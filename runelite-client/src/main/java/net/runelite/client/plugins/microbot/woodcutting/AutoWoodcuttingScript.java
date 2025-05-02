@@ -15,6 +15,8 @@ import net.runelite.client.plugins.microbot.util.gameobject.Rs2GameObject;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2Inventory;
 import net.runelite.client.plugins.microbot.util.math.Rs2Random;
 import net.runelite.client.plugins.microbot.util.player.Rs2Player;
+import net.runelite.client.plugins.microbot.util.prayer.Rs2Prayer;
+import net.runelite.client.plugins.microbot.util.prayer.Rs2PrayerEnum;
 import net.runelite.client.plugins.microbot.util.tile.Rs2Tile;
 import net.runelite.client.plugins.microbot.util.walker.Rs2Walker;
 import net.runelite.client.plugins.microbot.util.widget.Rs2Widget;
@@ -103,8 +105,15 @@ public class AutoWoodcuttingScript extends Script {
                                 return;
                         }
 
-                        if (Rs2Woodcutting.isWearingAxeWithSpecialAttack())
+                        if (Rs2Woodcutting.isWearingAxeWithSpecialAttack()) {
                             Rs2Combat.setSpecState(true, 1000);
+                            if (Microbot.getClient().getBoostedSkillLevel(Skill.PRAYER) > 0
+                                    && !Rs2Prayer.isPrayerActive(Rs2PrayerEnum.PRESERVE))
+                            {
+                                Rs2Prayer.toggle(Rs2PrayerEnum.PRESERVE, true);
+                                sleepGaussian(200, 50);
+                            }
+                        }
 
                         if (Rs2Inventory.isFull()) {
                             sleepGaussian(700,200);
@@ -188,7 +197,7 @@ public class AutoWoodcuttingScript extends Script {
                 break;
             case FLETCH_ARROWSHAFT:
                 fletchArrowShaft(config);
-                
+
                 walkBack(config);
                 state = State.WOODCUTTING;
                 break;
