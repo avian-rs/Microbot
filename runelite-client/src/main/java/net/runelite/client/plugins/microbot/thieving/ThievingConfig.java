@@ -2,6 +2,7 @@ package net.runelite.client.plugins.microbot.thieving;
 
 import net.runelite.client.config.*;
 import net.runelite.client.plugins.microbot.thieving.enums.ThievingNpc;
+import net.runelite.client.plugins.microbot.util.misc.Rs2Food;
 
 @ConfigGroup("Thieving")
 public interface ThievingConfig extends Config {
@@ -65,6 +66,59 @@ public interface ThievingConfig extends Config {
         return false;
     }
 
+
+    @ConfigSection(
+            name = "Food",
+            description = "Food",
+            position = 1
+    )
+    String food = "Food";
+
+    @ConfigItem(
+            keyName = "UseFood",
+            name = "Auto eat food",
+            description = "Automatically eats food",
+            position = 1,
+            section = food
+    )
+    default boolean useFood() { return true; }
+
+    @ConfigItem(
+            keyName = "Hitpoints",
+            name = "Eat at %",
+            description = "Use food below certain hitpoint percent",
+            position = 2,
+            section = food
+    )
+    default int hitpoints()
+    {
+        return 20;
+    }
+
+    @ConfigItem(
+            keyName = "Food",
+            name = "Food",
+            description = "type of food",
+            position = 3,
+            section = food
+    )
+    default Rs2Food food()
+    {
+        return Rs2Food.MONKFISH;
+    }
+
+    @ConfigItem(
+            keyName = "FoodAmount",
+            name = "Food Amount",
+            description = "Amount of food to withdraw from bank",
+            position = 4,
+            section = food
+    )
+    default int foodAmount()
+    {
+        return 5;
+    }
+
     @ConfigSection(
             name = "Coin pouch & Items",
             description = "Coin pouch & Items",
@@ -73,13 +127,13 @@ public interface ThievingConfig extends Config {
     String coinPouchSection = "Coin pouch & Items";
 
     @ConfigItem(
-            keyName = "Coin Pouch Threshold",
-            name = "How many coin pouches in your inventory before opening?",
-            description = "How many coin pouches do you need in your inventory before opening them?",
+            keyName = "Coin Pouch TreshHold",
+            name = "How many coinpouches in your inventory before opening?",
+            description = "How many coinpouches do you need in your inventory before opening them?",
             position = 1,
             section = coinPouchSection
     )
-    default int coinPouchThreshold()
+    default int coinPouchTreshHold()
     {
         return 28;
     }
@@ -126,17 +180,17 @@ public interface ThievingConfig extends Config {
     )
     String poolSection = "House-Pool Healing";
 
-//    @ConfigItem(
-//            keyName = "useHousePool",
-//            name = "Use POH pool to heal",
-//            description = "Teleport to Player-Owned House & use ornate rejuvenation pool when below HP threshold",
-//            position = 0,
-//            section = poolSection
-//    )
-//    default boolean useHousePool()
-//    {
-//        return false;
-//    }
+    @ConfigItem(
+            keyName = "useHousePool",
+            name = "Use POH pool to heal",
+            description = "Teleport to Player-Owned House & use ornate rejuvenation pool when below HP threshold",
+            position = 0,
+            section = poolSection
+    )
+    default boolean useHousePool()
+    {
+        return false;
+    }
 
     @ConfigItem(
             keyName = "poolHpThreshold",
