@@ -1,9 +1,6 @@
 package net.runelite.client.plugins.microbot.thieving;
 
-import net.runelite.client.config.Config;
-import net.runelite.client.config.ConfigGroup;
-import net.runelite.client.config.ConfigItem;
-import net.runelite.client.config.ConfigSection;
+import net.runelite.client.config.*;
 import net.runelite.client.plugins.microbot.thieving.enums.ThievingNpc;
 import net.runelite.client.plugins.microbot.util.misc.Rs2Food;
 
@@ -176,5 +173,35 @@ public interface ThievingConfig extends Config {
     {
         return "";
     }
+    @ConfigSection(
+            name = "House-Pool Healing",
+            description = "Teleport to POH & use ornate pool when low HP",
+            position = 3
+    )
+    String poolSection = "House-Pool Healing";
 
+    @ConfigItem(
+            keyName = "useHousePool",
+            name = "Use POH pool to heal",
+            description = "Teleport to Player-Owned House & use ornate rejuvenation pool when below HP threshold",
+            position = 0,
+            section = poolSection
+    )
+    default boolean useHousePool()
+    {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = "poolHpThreshold",
+            name = "Pool at HP ≤ %",
+            description = "If your current Hitpoints % falls to or below this, teleport to house and heal",
+            position = 1,
+            section = poolSection
+    )
+    @Range(min = 1, max = 99)
+    default int poolHpThreshold()
+    {
+        return 10;
+    }
 }

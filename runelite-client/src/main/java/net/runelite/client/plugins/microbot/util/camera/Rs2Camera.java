@@ -11,6 +11,7 @@ import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.plugins.microbot.util.Global;
 import net.runelite.client.plugins.microbot.util.keyboard.Rs2Keyboard;
 import net.runelite.client.plugins.microbot.util.player.Rs2Player;
+import net.runelite.client.plugins.microbot.util.math.Rs2Random;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -280,5 +281,39 @@ public static void resetZoom() {
     if (getZoom() > 200)
         setZoom(200);
 }
+    /**
+     * Jitters the camera by a small random yaw most of the time,
+     * but occasionally does a large swing to simulate deeper human corrections.
+     */
+    public static void rotateCameraRandomly()
+    {
+        // roll 1–100
+        int roll = Rs2Random.nextInt(1, 100, 1.0, false);
+
+        // 10% chance for a big swing
+        final int delta;
+        if (roll <= 10)
+        {
+            // big swing between 90° and 180°
+            delta = Rs2Random.nextInt(90, 180, 1.0, false);
+        }
+        else
+        {
+            // normal jitter between 15° and 45°
+            delta = Rs2Random.nextInt(15, 45, 1.0, false);
+        }
+
+        // choose direction
+        boolean clockwise = Rs2Random.nextInt(0, 1, 1.0, false) == 1;
+
+        int currentYaw = getAngle();
+        int targetYaw = clockwise
+                ? (currentYaw + delta) % 360
+                : (currentYaw - delta + 360) % 360;
+
+        // rotate until within ±8° of target
+        setAngle(targetYaw, 8);
+    }
+
 }
 

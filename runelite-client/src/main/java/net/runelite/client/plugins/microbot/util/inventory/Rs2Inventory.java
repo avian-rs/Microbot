@@ -584,19 +584,51 @@ public class Rs2Inventory {
      *
      * @return True if all matching items were successfully dropped, false otherwise.
      */
-    public static boolean dropAll(Predicate<Rs2ItemModel> predicate, InteractOrder dropOrder) {
+    public static boolean dropAll(Predicate<Rs2ItemModel> predicate, InteractOrder dropOrder)
+    {
+        // 1) filter & order
         List<Rs2ItemModel> itemsToDrop = items().stream()
                 .filter(predicate)
                 .collect(Collectors.toList());
+        itemsToDrop = calculateInteractOrder(itemsToDrop, dropOrder);
 
-       itemsToDrop = calculateInteractOrder(itemsToDrop, dropOrder);
-
-        for (Rs2ItemModel item : itemsToDrop) {
+        // 2) iterate & inject human‐like mistakes on EFFICIENT_ROW
+        for (Rs2ItemModel item : itemsToDrop)
+        {
             if (item == null) continue;
+
+            if (dropOrder == InteractOrder.EFFICIENT_ROW)
+            {
+                // 5% chance to forget this drop
+                if (Rs2Random.nextInt(1, 100, 1.0, false) <= 5)
+                {
+                    Microbot.log("Whoops—forgot to drop " + item.getName());
+                    sleepGaussian(200, 50);
+                    continue;
+                }
+
+                // 3% chance to mis-click a random slot first
+                if (Rs2Random.nextInt(1, 100, 1.0, false) <= 3)
+                {
+                    int randomSlot = Rs2Random.nextInt(0, CAPACITY - 1, 1.0, false);
+                    Rs2ItemModel wrong = inventoryItems.stream()
+                            .filter(x -> x.getSlot() == randomSlot)
+                            .findFirst().orElse(null);
+                    if (wrong != null)
+                    {
+                        invokeMenu(wrong, "Drop");
+                        Microbot.log("Mis-clicked on slot " + randomSlot + " (" + wrong.getName() + ")");
+                        sleepGaussian(200, 50);
+                    }
+                }
+            }
+
+            // 3) the real drop
             invokeMenu(item, "Drop");
             if (!Rs2AntibanSettings.naturalMouse)
-                sleep(150, 300);
+                sleepGaussian(225, 75);
         }
+
         return true;
     }
 
