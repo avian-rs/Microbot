@@ -123,12 +123,12 @@ public class AntibanSetupTemplates {
         Rs2AntibanSettings.universalAntiban = true;
         Rs2AntibanSettings.microBreakDurationLow = 1;
         Rs2AntibanSettings.microBreakDurationHigh = 5;
-        Rs2AntibanSettings.actionCooldownChance = 0.04;
-        Rs2AntibanSettings.microBreakChance = 0.01;
+        Rs2AntibanSettings.actionCooldownChance = 0.07;
+        Rs2AntibanSettings.microBreakChance = 0.005;
         Rs2AntibanSettings.moveMouseOffScreen = true;
-        Rs2AntibanSettings.moveMouseOffScreenChance = 0.10;
+        Rs2AntibanSettings.moveMouseOffScreenChance = 0.30;
         Rs2AntibanSettings.moveMouseRandomly = true;
-        Rs2AntibanSettings.moveMouseRandomlyChance = 0.35;
+        Rs2AntibanSettings.moveMouseRandomlyChance = 0.40;
         Rs2Antiban.setActivityIntensity(ActivityIntensity.LOW);
         Rs2Antiban.setActivity(Activity.CRAFTING_BLOODS_TRUE_ALTAR);
     }
@@ -228,7 +228,6 @@ public class AntibanSetupTemplates {
     }
 
     public void applyThievingSetup() {
-        // Implementation for Runecrafting setup
         Rs2AntibanSettings.antibanEnabled = true;
         Rs2AntibanSettings.usePlayStyle = true;
         Rs2AntibanSettings.randomIntervals = false;
@@ -249,14 +248,13 @@ public class AntibanSetupTemplates {
         Rs2AntibanSettings.universalAntiban = true;
         Rs2AntibanSettings.microBreakDurationLow = 1;
         Rs2AntibanSettings.microBreakDurationHigh = 5;
-        Rs2AntibanSettings.actionCooldownChance = 0.25;
-        Rs2AntibanSettings.microBreakChance = 0.02;
+        Rs2AntibanSettings.actionCooldownChance = 0.07;
+        Rs2AntibanSettings.microBreakChance = 0.005;
         Rs2AntibanSettings.moveMouseOffScreen = true;
         Rs2AntibanSettings.moveMouseOffScreenChance = 0.10;
         Rs2AntibanSettings.moveMouseRandomly = true;
         Rs2AntibanSettings.moveMouseRandomlyChance = 0.35;
         Rs2Antiban.setActivityIntensity(ActivityIntensity.LOW);
-        Rs2Antiban.setActivity(Activity.CRAFTING_BLOODS_TRUE_ALTAR);
     }
 
     /**
@@ -407,7 +405,6 @@ public class AntibanSetupTemplates {
      */
     public void applySmithingSetup() {
         // Implementation for Smithing setup
-        // Implementation for Runecrafting setup
         Rs2AntibanSettings.antibanEnabled = true;
         Rs2AntibanSettings.usePlayStyle = true;
         Rs2AntibanSettings.randomIntervals = false;
@@ -431,9 +428,9 @@ public class AntibanSetupTemplates {
         Rs2AntibanSettings.actionCooldownChance = 0.04;
         Rs2AntibanSettings.microBreakChance = 0.05;
         Rs2AntibanSettings.moveMouseOffScreen = true;
-        Rs2AntibanSettings.moveMouseOffScreenChance = 0.10;
+        Rs2AntibanSettings.moveMouseOffScreenChance = 0.30;
         Rs2AntibanSettings.moveMouseRandomly = true;
-        Rs2AntibanSettings.moveMouseRandomlyChance = 0.30;
+        Rs2AntibanSettings.moveMouseRandomlyChance = 0.40;
         Rs2Antiban.setActivityIntensity(ActivityIntensity.LOW);
     }
 
