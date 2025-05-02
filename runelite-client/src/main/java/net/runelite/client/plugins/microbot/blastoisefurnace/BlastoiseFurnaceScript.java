@@ -100,12 +100,17 @@ public class BlastoiseFurnaceScript extends Script {
                                 Rs2Bank.withdrawItem(COAL_BAG);
                             }
 
+                            if (Microbot.getClient().getEnergy() < 6100
+                                    && !Rs2Player.hasStaminaBuffActive()) {
+                                if (useStaminaPotions()) {
+                                    // we drank → bail out so that next tick handles ore-withdraw
+                                    return;
+                                }
+                            }
                             // 3) Deposit bars but keep potion & vial
                             if (Rs2Inventory.hasItem("bar")) {
                                 Rs2Bank.depositAllExcept(
-                                        COAL_BAG,
-                                        ItemID.STAMINA_POTION1,
-                                        ItemID.VIAL
+                                        COAL_BAG
                                 );
                             }
 
@@ -118,13 +123,7 @@ public class BlastoiseFurnaceScript extends Script {
                             }
 
                             // 5) **Single** energy+buff check
-                            if (Microbot.getClient().getEnergy() < 7100
-                                    && !Rs2Player.hasStaminaBuffActive()) {
-                                if (useStaminaPotions()) {
-                                    // we drank → bail out so that next tick handles ore-withdraw
-                                    return;
-                                }
-                            }
+
 
                             // 6) Normal dispenser / smithing flow…
                             if (dispenserContainsBars()) {
