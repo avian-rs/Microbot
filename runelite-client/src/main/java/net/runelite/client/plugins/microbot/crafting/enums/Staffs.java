@@ -11,7 +11,7 @@ public enum Staffs {
     EARTH_BATTLESTAFF("Earth battlestaff", "Earth battlestaff", 58, "Earth orb", 575),
     FIRE_BATTLESTAFF("Fire Battlestaff", "Fire Battlestaff", 62, "Fire Orb", 569),
     AIR_BATTLESTAFF("Air Battlestaff", "Air Battlestaff", 66, "Air Orb", 573),
-    AMETHYST("Amethyst", "Amethyst", 66, "Chisel", ItemID.AMETHYST);
+    CRYSTAL("Crystal dust", "Crystal dust", 66, "Super combat potion(4)", ItemID.PRIF_CRYSTAL_SHARD_CRUSHED);
 
     private final String label;
     private final String itemName;
