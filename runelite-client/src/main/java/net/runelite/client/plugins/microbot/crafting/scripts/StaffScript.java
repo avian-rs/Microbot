@@ -1,9 +1,5 @@
 package net.runelite.client.plugins.microbot.crafting.scripts;
 
-import lombok.Getter;
-import lombok.Setter;
-import net.runelite.api.Item;
-import net.runelite.api.Skill;
 import net.runelite.api.gameval.ItemID;
 import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.plugins.microbot.Script;
@@ -11,7 +7,6 @@ import net.runelite.client.plugins.microbot.crafting.CraftingConfig;
 import net.runelite.client.plugins.microbot.crafting.enums.Staffs;
 import net.runelite.client.plugins.microbot.util.antiban.Rs2Antiban;
 import net.runelite.client.plugins.microbot.util.bank.Rs2Bank;
-import net.runelite.client.plugins.microbot.util.camera.Rs2Camera;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2Inventory;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2ItemModel;
 import net.runelite.client.plugins.microbot.util.keyboard.Rs2Keyboard;
@@ -19,8 +14,9 @@ import net.runelite.client.plugins.microbot.util.math.Rs2Random;
 import net.runelite.client.plugins.microbot.util.widget.Rs2Widget;
 
 import java.awt.event.KeyEvent;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static net.runelite.api.ItemID.SUPER_COMBAT_POTION4;
 
 public class StaffScript extends Script {
 
@@ -42,14 +38,14 @@ public class StaffScript extends Script {
             }
             try {
                 itemToCraft = config.staffType();
-                if (itemToCraft.getItemName().equalsIgnoreCase("AMETHYST")) {
-                    if (Rs2Inventory.hasItem(ItemID.AMETHYST)
-                            && Rs2Inventory.hasItem(ItemID.CHISEL)) {
-                        craftAmethyst(config);
+                if (itemToCraft.getItemName().equalsIgnoreCase("Crystal dust")) {
+                    if (Rs2Inventory.hasItem(ItemID.PRIF_CRYSTAL_SHARD_CRUSHED)
+                            && Rs2Inventory.hasItem(SUPER_COMBAT_POTION4)) {
+                        craftCrystal(config);
                     }
-                    if (!Rs2Inventory.hasItem(ItemID.AMETHYST)
-                            && Rs2Inventory.hasItem(ItemID.CHISEL)) {
-                        bankAmethyst(config);
+                    if (!Rs2Inventory.hasItem(ItemID.PRIF_CRYSTAL_SHARD_CRUSHED)
+                            || !Rs2Inventory.hasItem(SUPER_COMBAT_POTION4)) {
+                        bankCrystal(config);
                     }
                 }
                 else {
@@ -89,17 +85,17 @@ public class StaffScript extends Script {
         sleepGaussian(400, 100); // Slower human deposit/pickup confirmation
         Rs2Bank.closeBank();
     }
-    private void bankAmethyst(CraftingConfig config) {
+    private void bankCrystal(CraftingConfig config) {
         Rs2Bank.openBank();
         sleepUntil(Rs2Bank::isOpen);
 
-        Rs2Bank.depositAll();
-        sleepUntil(() -> !Rs2Inventory.contains(ItemID.AMETHYST));
+        Rs2Bank.depositAllExcept(23964);
+        sleepUntil(() -> !Rs2Inventory.contains(SUPER_COMBAT_POTION4));
 
-        verifyItemInBank(ItemID.AMETHYST);
+        verifyItemInBank(SUPER_COMBAT_POTION4);
 
-        Rs2Bank.withdrawAll(ItemID.AMETHYST);
-        sleepUntil(() -> Rs2Inventory.contains(ItemID.AMETHYST));
+        Rs2Bank.withdrawAll(SUPER_COMBAT_POTION4);
+        sleepUntil(() -> Rs2Inventory.contains(SUPER_COMBAT_POTION4));
 
         sleepGaussian(400, 100); // Slower human deposit/pickup confirmation
         Rs2Bank.closeBank();
@@ -159,16 +155,16 @@ public class StaffScript extends Script {
 
     }
 
-    private void craftAmethyst(CraftingConfig config) {
+    private void craftCrystal(CraftingConfig config) {
         maybeHumanIdleBehavior();
 
-        Rs2Inventory.combine(1755, 21347);
+        Rs2Inventory.combine(23964, 12695);
 
-        Rs2Widget.sleepUntilHasWidgetText("How many do you wish to make?", 270, 5, false, 5000);
+        Rs2Widget.sleepUntilHasWidgetText("How many would you like to upgrade?", 270, 5, false, 5000);
         Rs2Keyboard.keyPress(KeyEvent.VK_SPACE);
         sleepGaussian(2500, 500);
 
-        sleepUntil(() -> !Rs2Inventory.hasItem(21347), 60000);
+        sleepUntil(() -> !Rs2Inventory.hasItem(12695), 60000);
 
         sleepGaussian(700, 200); // Natural delay before bank closure
 

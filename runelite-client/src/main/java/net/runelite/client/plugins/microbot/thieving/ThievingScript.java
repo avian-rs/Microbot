@@ -1,5 +1,6 @@
 package net.runelite.client.plugins.microbot.thieving;
 
+import net.runelite.api.GameObject;
 import net.runelite.api.NPC;
 import net.runelite.api.Skill;
 import net.runelite.api.Varbits;
@@ -15,8 +16,8 @@ import net.runelite.client.plugins.microbot.util.equipment.Rs2Equipment;
 import net.runelite.client.plugins.microbot.util.gameobject.Rs2GameObject;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2Inventory;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2ItemModel;
-import net.runelite.client.plugins.microbot.util.magic.Rs2Magic;
 import net.runelite.client.plugins.microbot.util.math.Rs2Random;
+import net.runelite.client.plugins.microbot.util.magic.Rs2Magic;
 import net.runelite.client.plugins.microbot.util.npc.Rs2Npc;
 import net.runelite.client.plugins.microbot.util.player.Rs2Player;
 import net.runelite.client.plugins.microbot.util.prayer.Rs2Prayer;
@@ -37,14 +38,11 @@ public class ThievingScript extends Script
 {
     public static String version = "1.6.2";
     private ThievingConfig config;
-    private static final WorldPoint NPC_LINDIR_ELF = new WorldPoint(
-            3244,
-            6071,
-            0
-    );
+
+    private static final WorldPoint NPC_LINDIR_ELF        = new WorldPoint(3244, 6071, 0);
     private static final WorldPoint HOUSE_PORTAL_LOCATION = new WorldPoint(3239, 6076, 0);
-    private static final int DOOR_CLOSED_ID = 36253;
-    private static final int DOOR_OPEN_ID   = 36254;
+    private static final int DOOR_CLOSED_ID               = 36253;
+    private static final int DOOR_OPEN_ID                 = 36254;
 
     public boolean run(ThievingConfig config)
     {
@@ -58,25 +56,31 @@ public class ThievingScript extends Script
         {
             try
             {
-                if (!Microbot.isLoggedIn() || !super.run())
-                    return;
-// 0) If we’ve picked up any “23959” items, bank them and return home
+                if (!Microbot.isLoggedIn() || !super.run()) return;
+
+                // 0) Bank extra seeds
                 if (Rs2Inventory.hasItem(23959))
                 {
                     depositEnhancedCrystalTeleportSeed();
                     return;
                 }
-//                if (initialPlayerLocation == null)
-//                    initialPlayerLocation = Rs2Player.getWorldLocation();
 
-                // Stash runes when stunned (25% chance)
+                // 1) If stunned
                 if (Rs2Player.isStunned())
                 {
-                    stashRunesInPouch();
+                    handleStunnedBehavior();
                     return;
                 }
 
-                // Ensure we have a dodgy necklace
+                // 2) Emergency heal if HP < 6
+                int currHp = Microbot.getClient().getBoostedSkillLevel(Skill.HITPOINTS);
+                if (currHp < 6)
+                {
+                    useHousePool();
+                    return;
+                }
+
+                // 3) Ensure dodgy necklace
                 if (!Rs2Inventory.hasItemAmount("dodgy necklace", 1, false))
                 {
                     Microbot.status = "Out of dodgy necklaces, banking…";
@@ -84,39 +88,37 @@ public class ThievingScript extends Script
                     return;
                 }
 
-                // Optional in-run POH healing
+                // 4) Optional POH pool healing
                 if (config.useHousePool())
                 {
                     int hp    = Microbot.getClient().getBoostedSkillLevel(Skill.HITPOINTS);
                     int maxHp = Microbot.getClient().getRealSkillLevel(Skill.HITPOINTS);
-                    int pct   = hp * 100 / maxHp;
-                    if (pct <= config.poolHpThreshold())
+                    if (hp * 100 / maxHp <= config.poolHpThreshold())
                     {
                         useHousePool();
                         return;
                     }
                 }
 
-                // Food logic
+                // 5) Food logic
                 List<Rs2ItemModel> foods = Rs2Inventory.getInventoryFood();
-                if (config.useFood() && !handleFood(foods))
-                    return;
+                if (config.useFood() && !handleFood(foods)) return;
                 if (Rs2Inventory.isFull())
                 {
                     Rs2Player.eatAt(99);
                     dropItems(foods);
                 }
 
-                // Coin pouch randomness
+                // 6) Coin pouch randomness
                 if (Rs2Random.nextInt(70, 120, 1.0, false) > 110
                         && Rs2Inventory.hasItemAmount("coin pouch", config.coinPouchTreshHold(), true))
                 {
                     Rs2Inventory.interact("coin pouch", "Open-all");
                 }
 
-                if (!ensureDodgyNecklace())
-                    return;
-
+                // 7) Main pickpocket
+                if (!ensureDodgyNecklace()) return;
+                sleepGaussian(400, 100);
                 pickpocket();
             }
             catch (Exception ex)
@@ -137,107 +139,126 @@ public class ThievingScript extends Script
     }
 
     /**
-     * When stunned, sometimes stash Death/Nature runes into your pouch (15% chance).
+     * Retries opening a closed door up to 3 times.
+     * @return true if door is now open (or wasn't there), false otherwise.
      */
-    private void stashRunesInPouch()
+    private boolean ensureDoorOpen()
     {
-        if (Rs2Random.nextInt(1, 100, 1.0, false) > 15)
+        for (int attempt = 1; attempt <= 3; attempt++)
         {
-            return;
-        }
+//            List<GameObject> closed = Rs2GameObject.getGameObjects(DOOR_CLOSED_ID);
+//            if (closed.isEmpty())
+//            {
+//                return true;
+//            }
 
-        if (!Rs2Inventory.contains("Rune pouch"))
-            return;
-
-        List<String> runes = Arrays.asList("Death rune", "Nature rune");
-        for (String rune : runes)
-        {
-            if (Rs2Inventory.hasItemAmount(rune, 1, true))
+            Microbot.log("Opening door, attempt " + attempt);
+            Rs2GameObject.interact(DOOR_CLOSED_ID, "Open");
+            sleepGaussian(250, 60);
+            sleepUntil(() -> Rs2GameObject.getGameObjects(DOOR_CLOSED_ID).isEmpty(), 3000);
+            if (Rs2GameObject.getGameObjects(DOOR_CLOSED_ID).isEmpty())
             {
-                Rs2Inventory.interact(rune, "Use");
-                sleepGaussian(150, 50);
-                Rs2Inventory.interact("Rune pouch", "Use");
-                sleepGaussian(200, 60);
+                return true;
             }
         }
+
+        Microbot.log("Failed to open door after 3 attempts");
+        return false;
     }
+
     /**
-     * Walk to the Prifddinas bank, deposit all items with ID d,
-     * then return to the original pickpocket spot.
+     * When stunned, roll once (1–100):
+     *  1–15   → stash runes
+     *  16–30  → drink wine if HP<60
+     *  31–45  → drop empty jug
+     *  46–55  → 50% chance to misclick/pickpocket (quick Gaussian delay)
+     *  56–100 → nothing
      */
-    private void depositEnhancedCrystalTeleportSeed()
-    {
-        Microbot.log("Banking extra items…");
-
-
-        // 1) Open bank in Prifddinas
-        boolean opened = Rs2Bank.isNearBank(PRIFDDINAS, 8)
-                ? Rs2Bank.openBank()
-                : Rs2Bank.walkToBankAndUseBank(PRIFDDINAS);
-        if (!opened || !Rs2Bank.isOpen())
-            return;
-
-        // 2) Deposit every 23959 in your inventory
-        Rs2Inventory.interact(23959, "Deposit-All");
-        sleepGaussian(200, 50);
-
-        // 3) Close bank
-        Rs2Bank.closeBank();
-        sleepUntil(() -> !Rs2Bank.isOpen(), 5000);
-
-        // 4) Walk back to your starting point
-        Rs2Walker.walkTo(NPC_LINDIR_ELF);
-        sleepUntil(() ->
-                        Rs2Player.getWorldLocation().distanceTo(NPC_LINDIR_ELF) < 3,
-                5000
-        );
-    }
-    private boolean doorInTheWay(NPC npc)
-    {
-        if (npc == null) return false;
-        WorldPoint me   = Rs2Player.getWorldLocation();
-        WorldPoint them = npc.getWorldLocation();
-        WorldPoint between = new WorldPoint(
-                (me.getX() + them.getX()) / 2,
-                (me.getY() + them.getY()) / 2,
-                me.getPlane());
-        return Rs2GameObject.getGameObjects(DOOR_CLOSED_ID).stream()
-                .anyMatch(o -> o.getWorldLocation().equals(between));
-    }
-
-    private void ensureDoorOpen()
-    {
-        Rs2GameObject.getGameObjects(DOOR_CLOSED_ID).stream().findFirst().ifPresent(o ->
-        {
-            Rs2GameObject.interact(DOOR_CLOSED_ID, "Open");
-            sleepUntil(() ->
-                            Rs2GameObject.getGameObjects(DOOR_CLOSED_ID).isEmpty()
-                                    || !Rs2GameObject.getGameObjects(DOOR_OPEN_ID).isEmpty(),
-                    5000);
-        });
-        Microbot.log("Opened door");
-    }
-
-    private void humanSleep()
+    private void handleStunnedBehavior()
     {
         int roll = Rs2Random.nextInt(1, 100, 1.0, false);
-        if      (roll <= 5)  sleepGaussian(800, 200);
-        else if (roll >= 95) sleepGaussian( 50,  20);
-        else if (roll <= 25) sleepGaussian(120,  40);
-        else                 sleepGaussian(250, 100);
+
+        if (roll <= 15)
+        {
+            // stash runes
+            if (Rs2Inventory.contains("Rune pouch"))
+            {
+                sleepGaussian(200, 50);
+                for (String rune : Arrays.asList("Death rune", "Nature rune"))
+                {
+                    if (Rs2Inventory.hasItemAmount(rune, 1, true))
+                    {
+                        Rs2Inventory.interact(rune, "Use");
+                        sleepGaussian(150, 50);
+                        Rs2Inventory.interact("Rune pouch", "Use");
+                        sleepGaussian(200, 60);
+                    }
+                }
+            }
+            return;
+        }
+        else if (roll <= 30)
+        {
+            // drink wine
+            int hp = Microbot.getClient().getBoostedSkillLevel(Skill.HITPOINTS);
+            if (hp < 60 && Rs2Inventory.hasItem(1993))
+            {
+                Rs2Inventory.interact(1993, "Drink");
+                sleepGaussian(200, 50);
+            }
+            return;
+        }
+        else if (roll <= 45)
+        {
+            // drop jug
+            if (Rs2Inventory.hasItem(1935))
+            {
+                Rs2Inventory.interact(1935, "Drop");
+                sleepGaussian(200, 50);
+            }
+            return;
+        }
+        else if (roll <= 55)
+        {
+            // misclick pickpocket
+            if (Rs2Random.nextInt(1, 100, 1.0, false) <= 50)
+            {
+                sleepGaussian(110, 25);
+                NPC target = getTargetNpc();
+                if (target != null)
+                {
+                    Rs2Npc.pickpocket(target);
+                }
+            }
+            return;
+        }
+        // else do nothing
     }
 
-    /**
-     * Open any door in the way, then cast Shadow Veil (if configured),
-     * then pickpocket + delay + occasional camera jitter.
-     */
+    private NPC getTargetNpc()
+    {
+        Map<NPC, HighlightedNpc> highlights =
+                net.runelite.client.plugins.npchighlight.NpcIndicatorsPlugin.getHighlightedNpcs();
+        if (!highlights.isEmpty())
+            return highlights.keySet().iterator().next();
+
+        if (config.THIEVING_NPC() == ThievingNpc.ELVES)
+            return Rs2Npc.getNpc("Lindir");
+        else
+            return Rs2Npc.getNpc(config.THIEVING_NPC().getName());
+    }
+
     private void attemptPickpocket(NPC npc)
     {
         if (npc == null) return;
 
         if (doorInTheWay(npc))
         {
-            ensureDoorOpen();
+            if (!ensureDoorOpen())
+            {
+                Microbot.log("Could not open door, skipping pickpocket");
+                return;
+            }
             sleepGaussian(250, 60);
         }
 
@@ -250,8 +271,49 @@ public class ThievingScript extends Script
         if (Rs2Npc.pickpocket(npc))
         {
             Rs2Walker.setTarget(null);
-            humanSleep();
-            if (Rs2Random.nextInt(1, 100, 1.0, false) <= 3)
+
+            if (rollProbability(5))
+            {
+                sleepGaussian(50, 20);
+                Rs2Npc.pickpocket(npc);
+            }
+            if (Rs2Player.isStunned() && rollProbability(4))
+            {
+                sleepGaussian(50, 20);
+                Rs2Npc.pickpocket(npc);
+            }
+
+//            // fast human sleep ~109±18 ms
+//            sleepGaussian(109, 18);
+            // inside your click-handling block, instead of fixed sleepGaussian(109,18):
+
+// 1) Mixture of human-like intervals:
+//   – 70% “normal” speed around 109 ± 18 ms
+//   – 20% “fast” bursts around 60 ± 15 ms
+//   – 10% “slow” drift around 200 ± 50 ms
+            double r = Math.random();
+            if (r < 0.70) {
+                sleepGaussian(109, 18);
+            } else if (r < 0.90) {
+                sleepGaussian(60, 15);
+            } else {
+                sleepGaussian(200, 50);
+            }
+
+// 2) Occasional double-click “combo” (e.g. 15% chance):
+            if (Math.random() < 0.15) {
+                // second click after a very short human-like pause
+                sleepGaussian(40, 10);
+                Rs2Npc.pickpocket(npc); // or your click action
+            }
+
+// 3) Rare “super slow” break (0.5% chance) to mimic distraction:
+            if (Math.random() < 0.005) {
+                // random 3–6 s break
+                sleepGaussian(4200,1200);
+            }
+
+            if (rollProbability(3))
                 Rs2Camera.rotateCameraRandomly();
         }
     }
@@ -264,39 +326,74 @@ public class ThievingScript extends Script
             return;
         }
 
-        NPC target = null;
-        Map<NPC, HighlightedNpc> highlights =
-                net.runelite.client.plugins.npchighlight.NpcIndicatorsPlugin.getHighlightedNpcs();
-        if (!highlights.isEmpty())
+        NPC target = getTargetNpc();
+        Rs2Walker.walkTo(NPC_LINDIR_ELF);
+
+        if (Microbot.getClient().getBoostedSkillLevel(Skill.PRAYER) > 0
+                && !Rs2Prayer.isPrayerActive(Rs2PrayerEnum.RAPID_HEAL))
         {
-            target = highlights.keySet().iterator().next();
+            Rs2Prayer.toggle(Rs2PrayerEnum.RAPID_HEAL, true);
+            sleepGaussian(300, 50);
         }
-        else
+        if (Microbot.getClient().getBoostedSkillLevel(Skill.PRAYER) > 0
+                && Microbot.getClient().getBoostedSkillLevel(Skill.HITPOINTS) < 30
+                && !Rs2Prayer.isPrayerActive(Rs2PrayerEnum.REDEMPTION))
         {
-            if (Objects.requireNonNull(config.THIEVING_NPC()) == ThievingNpc.ELVES) {
-                target = Rs2Npc.getNpc("Lindir");
-            } else {
-                target = Rs2Npc.getNpc(config.THIEVING_NPC().getName());
-            }
+            Rs2Prayer.toggle(Rs2PrayerEnum.REDEMPTION, true);
+            sleepGaussian(300, 50);
         }
 
-        Rs2Walker.walkTo(NPC_LINDIR_ELF);
-// Toggle Redemption just before pickpocket if HP < 30
-        if (Microbot.getClient().getBoostedSkillLevel(Skill.PRAYER) > 0
-                && Microbot.getClient().getBoostedSkillLevel(Skill.HITPOINTS) < 30
-                && !Rs2Prayer.isPrayerActive(Rs2PrayerEnum.REDEMPTION))
-        {
-            Rs2Prayer.toggle(Rs2PrayerEnum.REDEMPTION, true);
-            sleepGaussian(300, 50);
-        }
-        if (Microbot.getClient().getBoostedSkillLevel(Skill.PRAYER) > 0
-                && Microbot.getClient().getBoostedSkillLevel(Skill.HITPOINTS) < 30
-                && !Rs2Prayer.isPrayerActive(Rs2PrayerEnum.REDEMPTION))
-        {
-            Rs2Prayer.toggle(Rs2PrayerEnum.REDEMPTION, true);
-            sleepGaussian(300, 50);
-        }
         attemptPickpocket(target);
+    }
+
+    private boolean rollProbability(int percent)
+    {
+        return Rs2Random.nextInt(1, 100, 1.0, false) <= percent;
+    }
+
+    private void humanSleep()
+    {
+        int roll = Rs2Random.nextInt(1, 100, 1.0, false);
+        if      (roll <= 5)  sleepGaussian(800, 200);
+        else if (roll >= 95) sleepGaussian( 50,  20);
+        else if (roll <= 25) sleepGaussian(120,  40);
+        else                 sleepGaussian(250, 100);
+    }
+
+    private void depositEnhancedCrystalTeleportSeed()
+    {
+        Microbot.log("Banking extra items…");
+
+        boolean opened = Rs2Bank.isNearBank(PRIFDDINAS, 8)
+                ? Rs2Bank.openBank()
+                : Rs2Bank.walkToBankAndUseBank(PRIFDDINAS);
+        if (!opened || !Rs2Bank.isOpen()) return;
+
+        Rs2Inventory.interact(23959, "Deposit-All");
+        sleepGaussian(200, 50);
+
+        Rs2Bank.closeBank();
+        sleepUntil(() -> !Rs2Bank.isOpen(), 5000);
+
+        Rs2Walker.walkTo(NPC_LINDIR_ELF);
+        sleepUntil(() ->
+                        Rs2Player.getWorldLocation().distanceTo(NPC_LINDIR_ELF) < 1,
+                5000
+        );
+    }
+
+    private boolean doorInTheWay(NPC npc)
+    {
+        if (npc == null) return false;
+        WorldPoint me   = Rs2Player.getWorldLocation();
+        WorldPoint them = npc.getWorldLocation();
+        WorldPoint between = new WorldPoint(
+                (me.getX() + them.getX()) / 2,
+                (me.getY() + them.getY()) / 2,
+                me.getPlane());
+        return Rs2GameObject.getGameObjects(DOOR_CLOSED_ID)
+                .stream()
+                .anyMatch(o -> o.getWorldLocation().equals(between));
     }
 
     private boolean handleFood(List<Rs2ItemModel> food)
@@ -307,33 +404,27 @@ public class ThievingScript extends Script
             bank();
             return false;
         }
-        sleepGaussian(400,100);
+        sleepGaussian(400, 100);
         Rs2Player.eatAt(config.hitpoints());
         return true;
     }
 
+    /**
+     * Teleport home to your POH pool, drink, and return.
+     */
     private void useHousePool()
     {
-        // 1) Walk into range of the portal
         Microbot.status = "Walking to house portal…";
-//        if (Rs2Player.getWorldLocation().distanceTo(HOUSE_PORTAL_LOCATION) > 2)
-//        {
-//            // walk with a bit of deviation so it’s not perfectly straight
-//            Rs2Walker.walkToWithDeviation(HOUSE_PORTAL_LOCATION, 2);
-//            sleepUntil(() ->
-//                            Rs2Player.getWorldLocation().distanceTo(HOUSE_PORTAL_LOCATION) <= 2,
-//                    5000
-//            );
-//        }
 
-        // 2) If there’s a closed door between you and the portal, open it
-        //    (reuses your existing ensureDoorOpen logic)
-//        ensureDoorOpen();
-        // small pause to let the door finish opening
-        Rs2GameObject.interact(DOOR_CLOSED_ID, "Open");
+        // 1) Open any door in the way (retry up to 3 times)
+        if (!ensureDoorOpen())
+        {
+            Microbot.log("Failed to open door to portal, aborting heal");
+            return;
+        }
         sleepGaussian(300, 60);
 
-        // 3) Now interact with the portal
+        // 2) Use the portal
         Rs2GameObject.interact(POH_PRIFDDINAS_PORTAL, "Home");
         sleepUntil(() ->
                         Rs2Player.getWorldLocation().getRegionID() != 12894,
@@ -341,7 +432,7 @@ public class ThievingScript extends Script
         );
         sleepGaussian(500,100);
 
-        // 4) Drink at the pool
+        // 3) Drink at the pool
         Microbot.log("Using ornate pool…");
         if (Rs2GameObject.interact(ORNATE_POOL_OF_REJUVENATION, "Drink"))
         {
@@ -356,19 +447,18 @@ public class ThievingScript extends Script
             Microbot.log("Failed to interact with ornate pool!");
         }
         sleepGaussian(500,100);
-        // 5) Exit the house
+
+        // 4) Exit the house
         Microbot.log("Leaving house…");
-        if (Rs2GameObject.interact(POH_EXIT_PORTAL, "Enter"))
-        {
-            sleepUntil(() ->
-                            Rs2Player.getWorldLocation().distanceTo(HOUSE_PORTAL_LOCATION) < 3,
-                    8000
-            );
-        }
-        else
+        if (!Rs2GameObject.interact(POH_EXIT_PORTAL, "Enter"))
         {
             Microbot.log("Failed to leave house portal!");
+            return;
         }
+        sleepUntil(() ->
+                        Rs2Player.getWorldLocation().distanceTo(HOUSE_PORTAL_LOCATION) < 2,
+                8000
+        );
 
         Microbot.status = "Resuming thieving";
     }
@@ -381,7 +471,7 @@ public class ThievingScript extends Script
 
     private boolean ensureDodgyNecklace()
     {
-        sleepGaussian(400,100);
+        sleepGaussian(400, 100);
         if (Rs2Equipment.isWearing("dodgy necklace"))
             return true;
         if (Rs2Inventory.contains("dodgy necklace"))
@@ -418,19 +508,15 @@ public class ThievingScript extends Script
         boolean open = Rs2Bank.isNearBank(PRIFDDINAS, 8)
                 ? Rs2Bank.openBank()
                 : Rs2Bank.walkToBankAndUseBank(PRIFDDINAS);
-        if (!open || !Rs2Bank.isOpen())
-            return;
+        if (!open || !Rs2Bank.isOpen()) return;
 
         Rs2Bank.depositAll();
-//        Rs2Bank.withdrawX(true, config.food().getName(), config.foodAmount(), true);
         Rs2Bank.withdrawX("dodgy necklace", config.dodgyNecklaceAmount());
-
         if (config.shadowVeil())
         {
             Rs2Bank.withdrawRunePouch();
             Rs2Inventory.waitForInventoryChanges(5000);
         }
-
         Rs2Bank.closeBank();
         sleepUntil(() -> !Rs2Bank.isOpen(), 5000);
         Microbot.log("bank closed");
@@ -440,12 +526,10 @@ public class ThievingScript extends Script
     {
         List<String> doNotDropItemList = Arrays.asList(config.DoNotDropItemList().split(","));
         List<String> keep = new ArrayList<>(doNotDropItemList);
-
         List<String> foodNames = food.stream()
                 .map(x -> x.name)
                 .collect(Collectors.toList());
         keep.addAll(foodNames);
-
         keep.add(config.food().getName());
         keep.add("dodgy necklace");
         keep.add("coins");
@@ -454,7 +538,6 @@ public class ThievingScript extends Script
         {
             keep.addAll(Arrays.asList("Fire rune","Earth rune","Cosmic rune","Rune pouch"));
         }
-
         Rs2Inventory.dropAllExcept(config.keepItemsAboveValue(), keep);
     }
 }
