@@ -58,12 +58,12 @@ public class ThievingScript extends Script
             {
                 if (!Microbot.isLoggedIn() || !super.run()) return;
 
-                // 0) Bank extra seeds
-                if (Rs2Inventory.hasItem(23959))
-                {
-                    depositEnhancedCrystalTeleportSeed();
-                    return;
-                }
+//                // 0) Bank extra seeds
+//                if (Rs2Inventory.hasItem(23959))
+//                {
+//                    depositEnhancedCrystalTeleportSeed();
+//                    return;
+//                }
 
                 // 1) If stunned
                 if (Rs2Player.isStunned())
