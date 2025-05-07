@@ -75,7 +75,8 @@ public class BlastoiseFurnaceScript extends Script {
     public boolean run(BlastoiseFurnaceConfig config) {
         this.config = config;
         state = State.BANKING;
-
+        Rs2Antiban.resetAntibanSettings();
+        Rs2Antiban.antibanSetupTemplates.applySmithingSetup();
         this.mainScheduledFuture = this.scheduledExecutorService.scheduleWithFixedDelay(() -> {
                     if (!Microbot.isLoggedIn() || !super.run())
                         return;
@@ -176,42 +177,51 @@ public class BlastoiseFurnaceScript extends Script {
     }
 
     private void handleDispenserLooting() {
+        final int MAX_RETRIES = 3;
+        int retries = 0;
 
-        // Check if the inventory is full before interacting with the dispenser
-        if (!Rs2Inventory.isFull()) {
+        while (!Rs2Inventory.isFull() && retries < MAX_RETRIES) {
             Rs2GameObject.interact(BAR_DISPENSER, "Take");
-
-            sleepUntil(() ->
+            boolean interactionSuccessful = sleepUntil(() ->
                     Rs2Widget.hasWidget("What would you like to take?") ||
-                    Rs2Widget.hasWidget("How many would you like") ||
-                    Rs2Widget.hasWidget("The bars are still molten!"), 5000);
+                            Rs2Widget.hasWidget("How many would you like") ||
+                            Rs2Widget.hasWidget("The bars are still molten!"), 5000);
 
-            boolean noIceGlovesEquipped = Rs2Widget.hasWidget("The bars are still molten!");
+            if (!interactionSuccessful) {
+                retries++;
+                Microbot.log("Bar dispenser click may have failed, retrying... (" + retries + ")");
+                sleep(600); // brief wait before retrying
+                continue;
+            }
 
-            if (noIceGlovesEquipped){
+            if (Rs2Widget.hasWidget("The bars are still molten!")) {
                 if (!Rs2Inventory.interact(ItemID.ICE_GLOVES, "Wear") && !Rs2Inventory.interact(ItemID.SMITHS_GLOVES_I, "Wear")) {
                     Microbot.showMessage("Ice gloves or smith gloves required to loot the hot bars.");
                     Rs2Player.logout();
-                    this.shutdown();
+                    shutdown();
                     return;
                 }
                 Rs2GameObject.interact(BAR_DISPENSER, "Take");
+                sleepUntil(() ->
+                        Rs2Widget.hasWidget("What would you like to take?") ||
+                                Rs2Widget.hasWidget("How many would you like"), 3000);
             }
 
-            sleepUntil(() -> Rs2Widget.hasWidget("What would you like to take?") || Rs2Widget.hasWidget("How many would you like"), 3000);
-
-            // If somehow multiple type of bars are created we need to clean up the dispenser.
-            boolean multipleBarTypes = Rs2Widget.hasWidget("What would you like to take?");
             boolean canLootBar = Rs2Widget.hasWidget("How many would you like");
+            boolean multipleBarTypes = Rs2Widget.hasWidget("What would you like to take?");
 
-            if (super.run()) {
-                if (canLootBar) {
-                    Rs2Keyboard.keyPress(KeyEvent.VK_SPACE);
-                } else if (multipleBarTypes) {
-                    Rs2Keyboard.keyPress(KeyEvent.VK_SPACE);
-                }
+            if (canLootBar || multipleBarTypes) {
+                Rs2Keyboard.keyPress(KeyEvent.VK_SPACE);
                 Rs2Inventory.waitForInventoryChanges(5000);
+                break;
             }
+
+            retries++;
+            sleep(600);
+        }
+
+        if (retries >= MAX_RETRIES) {
+            Microbot.log("Failed to loot from dispenser after multiple attempts.");
         }
 
         state = State.BANKING;
