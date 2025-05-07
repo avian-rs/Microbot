@@ -425,7 +425,7 @@ public class AntibanSetupTemplates {
         Rs2AntibanSettings.universalAntiban = true;
         Rs2AntibanSettings.microBreakDurationLow = 3;
         Rs2AntibanSettings.microBreakDurationHigh = 8;
-        Rs2AntibanSettings.actionCooldownChance = 0.04;
+        Rs2AntibanSettings.actionCooldownChance = 0.01;
         Rs2AntibanSettings.microBreakChance = 0.05;
         Rs2AntibanSettings.moveMouseOffScreen = true;
         Rs2AntibanSettings.moveMouseOffScreenChance = 0.30;
