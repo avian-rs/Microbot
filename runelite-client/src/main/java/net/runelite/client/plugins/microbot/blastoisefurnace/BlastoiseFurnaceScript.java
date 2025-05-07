@@ -101,11 +101,14 @@ public class BlastoiseFurnaceScript extends Script {
                                 Rs2Bank.withdrawItem(COAL_BAG);
                             }
 
-                            if (Microbot.getClient().getEnergy() < 6100
+                            int agilityLevel = Microbot.getClient().getRealSkillLevel(Skill.AGILITY);
+                            int staminaThreshold = agilityLevel >= 70 ? 4100 : 7700;
+
+                            if (Microbot.getClient().getEnergy() < staminaThreshold
                                     && !Rs2Player.hasStaminaBuffActive()) {
                                 if (useStaminaPotions()) {
-                                    // we drank → bail out so that next tick handles ore-withdraw
-                                    return;
+                                    sleepGaussian(900,200);
+                                    return; // Let the next loop handle ore withdrawal
                                 }
                             }
                             // 3) Deposit bars but keep potion & vial
@@ -190,7 +193,7 @@ public class BlastoiseFurnaceScript extends Script {
             if (!interactionSuccessful) {
                 retries++;
                 Microbot.log("Bar dispenser click may have failed, retrying... (" + retries + ")");
-                sleep(600); // brief wait before retrying
+                sleepGaussian(420, 100); // brief wait before retrying
                 continue;
             }
 
@@ -217,7 +220,7 @@ public class BlastoiseFurnaceScript extends Script {
             }
 
             retries++;
-            sleep(600);
+            sleepGaussian(420, 100);
         }
 
         if (retries >= MAX_RETRIES) {

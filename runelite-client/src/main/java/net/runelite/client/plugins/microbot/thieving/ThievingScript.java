@@ -153,8 +153,11 @@ public class ThievingScript extends Script
 //            }
 
             Microbot.log("Opening door, attempt " + attempt);
-            Rs2GameObject.interact(DOOR_CLOSED_ID, "Open");
+//            Rs2GameObject.interact(DOOR_CLOSED_ID, "Open");
+            WorldPoint correctDoorTile = new WorldPoint(3243, 6072, 0); // replace with actual door tile
+            Rs2GameObject.interact(correctDoorTile, "Open");
             sleepGaussian(250, 60);
+
             sleepUntil(() -> Rs2GameObject.getGameObjects(DOOR_CLOSED_ID).isEmpty(), 3000);
             if (Rs2GameObject.getGameObjects(DOOR_CLOSED_ID).isEmpty())
             {
