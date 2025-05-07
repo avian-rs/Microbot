@@ -303,12 +303,6 @@ public class ThievingScript extends Script
         Rs2Walker.walkTo(NPC_LINDIR_ELF);
 
         if (Microbot.getClient().getBoostedSkillLevel(Skill.PRAYER) > 0
-                && !Rs2Prayer.isPrayerActive(Rs2PrayerEnum.RAPID_HEAL))
-        {
-            Rs2Prayer.toggle(Rs2PrayerEnum.RAPID_HEAL, true);
-            sleepGaussian(300, 50);
-        }
-        if (Microbot.getClient().getBoostedSkillLevel(Skill.PRAYER) > 0
                 && Microbot.getClient().getBoostedSkillLevel(Skill.HITPOINTS) < 30
                 && !Rs2Prayer.isPrayerActive(Rs2PrayerEnum.REDEMPTION))
         {
