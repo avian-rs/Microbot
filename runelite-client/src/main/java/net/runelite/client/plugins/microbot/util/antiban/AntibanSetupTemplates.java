@@ -243,17 +243,13 @@ public class AntibanSetupTemplates {
         Rs2AntibanSettings.dynamicIntensity = false;
         Rs2AntibanSettings.dynamicActivity = false;
         Rs2AntibanSettings.devDebug = false;
-        Rs2AntibanSettings.takeMicroBreaks = true;
+        Rs2AntibanSettings.takeMicroBreaks = false;
         Rs2AntibanSettings.playSchedule = false;
         Rs2AntibanSettings.universalAntiban = true;
-        Rs2AntibanSettings.microBreakDurationLow = 1;
-        Rs2AntibanSettings.microBreakDurationHigh = 5;
-        Rs2AntibanSettings.actionCooldownChance = 0.07;
-        Rs2AntibanSettings.microBreakChance = 0.005;
         Rs2AntibanSettings.moveMouseOffScreen = true;
-        Rs2AntibanSettings.moveMouseOffScreenChance = 0.10;
+        Rs2AntibanSettings.moveMouseOffScreenChance = 0.15;
         Rs2AntibanSettings.moveMouseRandomly = true;
-        Rs2AntibanSettings.moveMouseRandomlyChance = 0.35;
+        Rs2AntibanSettings.moveMouseRandomlyChance = 0.42;
         Rs2Antiban.setActivityIntensity(ActivityIntensity.LOW);
     }
 
