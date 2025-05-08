@@ -244,8 +244,9 @@ public class ThievingScript extends Script
                 sleepGaussian(40, 10);
                 Rs2Npc.pickpocket(npc);
             }
-            if (Rs2Random.diceFractional(0.01))
+            if (Rs2Random.diceFractional(0.02))
             {
+                Microbot.log("few seconds break");
                 sleepGaussian(4200, 1200);
             }
             if (Rs2Random.diceFractional(0.03))
