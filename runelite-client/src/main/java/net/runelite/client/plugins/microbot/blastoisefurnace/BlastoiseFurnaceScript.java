@@ -100,11 +100,21 @@ public class BlastoiseFurnaceScript extends Script {
                                 }
                                 Rs2Bank.withdrawItem(COAL_BAG);
                             }
+                            // pick your threshold based on Agility level
+                            var client            = Microbot.getClient();
+                            int agilityLevel      = client.getRealSkillLevel(Skill.AGILITY);
+                            boolean highAgility   = agilityLevel > 60;
+                            int energyThreshold   = highAgility ? 4100 : 7500;
+                            int currentEnergy     = client.getEnergy();
 
-                            if (Microbot.getClient().getEnergy() < 6100
-                                    && !Rs2Player.hasStaminaBuffActive()) {
-                                if (useStaminaPotions()) {
-                                    // we drank → bail out so that next tick handles ore-withdraw
+                            if (!highAgility) {
+                                simulateRandomBreak();
+                            }
+                            if (currentEnergy < energyThreshold
+                                    && !Rs2Player.hasStaminaBuffActive())
+                            {
+                                if (useStaminaPotions())
+                                {
                                     return;
                                 }
                             }
@@ -181,6 +191,7 @@ public class BlastoiseFurnaceScript extends Script {
         int retries = 0;
 
         while (!Rs2Inventory.isFull() && retries < MAX_RETRIES) {
+            sleepGaussian(300,100);
             Rs2GameObject.interact(BAR_DISPENSER, "Take");
             boolean interactionSuccessful = sleepUntil(() ->
                     Rs2Widget.hasWidget("What would you like to take?") ||
@@ -190,7 +201,7 @@ public class BlastoiseFurnaceScript extends Script {
             if (!interactionSuccessful) {
                 retries++;
                 Microbot.log("Bar dispenser click may have failed, retrying... (" + retries + ")");
-                sleep(600); // brief wait before retrying
+                sleepGaussian(400, 100);
                 continue;
             }
 
@@ -600,6 +611,8 @@ public class BlastoiseFurnaceScript extends Script {
             Rs2GameObject.interact(9084, "Climb-down");
             Rs2Player.waitForAnimation();
             sleepUntil(() -> !Rs2Player.isAnimating());
+            Rs2Bank.openBank();
+            sleepUntil(Rs2Bank::isOpen, 20_000);
         }
     }
 

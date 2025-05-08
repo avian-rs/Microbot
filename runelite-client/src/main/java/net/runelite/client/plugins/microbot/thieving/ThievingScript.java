@@ -7,12 +7,12 @@ import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.game.npcoverlay.HighlightedNpc;
 import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.plugins.microbot.Script;
-import net.runelite.client.plugins.microbot.thieving.enums.ThievingNpc;
 import net.runelite.client.plugins.microbot.util.antiban.Rs2Antiban;
 import net.runelite.client.plugins.microbot.util.bank.Rs2Bank;
 import net.runelite.client.plugins.microbot.util.camera.Rs2Camera;
 import net.runelite.client.plugins.microbot.util.equipment.Rs2Equipment;
 import net.runelite.client.plugins.microbot.util.gameobject.Rs2GameObject;
+import net.runelite.client.plugins.microbot.util.grounditem.Rs2GroundItem;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2Inventory;
 import net.runelite.client.plugins.microbot.util.magic.Rs2Magic;
 import net.runelite.client.plugins.microbot.util.math.Rs2Random;
@@ -23,8 +23,6 @@ import net.runelite.client.plugins.microbot.util.prayer.Rs2PrayerEnum;
 import net.runelite.client.plugins.microbot.util.walker.Rs2Walker;
 import net.runelite.client.plugins.skillcalculator.skills.MagicAction;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -36,8 +34,7 @@ import static net.runelite.client.plugins.microbot.util.bank.enums.BankLocation.
 
 public class ThievingScript extends Script
 {
-    public static String version = "1.6.2";
-    private ThievingConfig config;
+    public static String version = "2.0";
 
     // core locations & IDs
     private static final WorldPoint NPC_LINDIR_ELF        = new WorldPoint(3244, 6071, 0);
@@ -45,26 +42,30 @@ public class ThievingScript extends Script
     private static final int DOOR_CLOSED_ID               = 36253;
     private static final WorldPoint DOOR_NPC_LINDIR       = new WorldPoint(3243, 6072, 0);
 
-    // default “keep” list for dropping
-    private static final List<String> DEFAULT_KEEP = Arrays.asList(
-            "dodgy necklace", "coins", "book of the dead",
-            "Fire rune", "Earth rune", "Cosmic rune", "Rune pouch"
+    private static final List<String> DEFAULT_KEEP = List.of(
+            "Dodgy necklace",
+            "Rune pouch",
+            "Coins",
+            "Coin pouch",
+            "Crystal shard",
+            "Death rune",
+            "Nature rune",
+            "Enhanced crystal teleport seed"
     );
 
     private static final List<String> STASH_RUNES = List.of("Death rune","Nature rune");
 
 
-    public boolean run(ThievingConfig config)
+    public boolean run()
     {
-        this.config = config;
         Microbot.isCantReachTargetDetectionEnabled = true;
         Microbot.enableAutoRunOn = false;
         Rs2Antiban.resetAntibanSettings();
         Rs2Antiban.antibanSetupTemplates.applyThievingSetup();
 
         // pre-compute thresholds
-        final int coinPouchThreshold   = config.coinPouchThreshold();
-        final int dodgyNecklaceAmount = config.dodgyNecklaceAmount();
+        final int coinPouchThreshold   = 75;
+        final int dodgyNecklaceAmount = 21;
 
         mainScheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() ->
         {
@@ -101,7 +102,17 @@ public class ThievingScript extends Script
                 // 4) inventory full?
                 if (Rs2Inventory.isFull())
                 {
-                    dropItems();
+                    Rs2Inventory.dropAllExcept(10000, DEFAULT_KEEP);
+                    for (String rune : STASH_RUNES)
+                    {
+                        if (Rs2Inventory.hasItem(rune))
+                        {
+                            Rs2Inventory.interact(rune, "Use");
+                            sleepGaussian(150, 50);
+                            Rs2Inventory.interact("Rune pouch", "Use");
+                            sleepGaussian(200, 60);
+                        }
+                    }
                 }
 
                 // 5) occasionally open coin pouches
@@ -149,23 +160,12 @@ public class ThievingScript extends Script
     private void handleStunnedBehavior()
     {
         int roll = Rs2Random.nextInt(1, 100, 1.0, false);
-        if (roll <= 15)
+        if (roll <= 10)
         {
-            // stash runes
-            if (Rs2Inventory.contains("Rune pouch"))
-            {
-                sleepGaussian(200, 50);
-                for (String rune : STASH_RUNES)
-                {
-                    if (Rs2Inventory.hasItemAmount(rune, 1, true))
-                    {
-                        Rs2Inventory.interact(rune, "Use");
-                        sleepGaussian(150, 50);
-                        Rs2Inventory.interact("Rune pouch", "Use");
-                        sleepGaussian(200, 60);
-                    }
-                }
+            if (Rs2GroundItem.exists(1993, 2)) {
+                Rs2GroundItem.pickup(1993);
             }
+            sleepGaussian(200, 50);
         }
         else if (roll <= 30)
         {
@@ -202,33 +202,28 @@ public class ThievingScript extends Script
         if (!highlights.isEmpty())
             return highlights.keySet().iterator().next();
 
-        if (config.THIEVING_NPC() == ThievingNpc.ELVES)
-            return Rs2Npc.getNpc("Lindir");
-        else
-            return Rs2Npc.getNpc(config.THIEVING_NPC().getName());
+        return Rs2Npc.getNpc("Lindir");
     }
 
     private void attemptPickpocket(NPC npc)
     {
         if (npc == null) return;
         if (doorInTheWay(npc) && !ensureDoorOpen()) return;
-
-        if (config.shadowVeil() && !Rs2Magic.isShadowVeilActive() && !Rs2Bank.isOpen())
+        if (!Rs2Magic.isShadowVeilActive() && !Rs2Bank.isOpen())
         {
             handleShadowVeil();
-            sleepGaussian(200, 50);
+            sleepGaussian(150, 50);
         }
-
         if (Rs2Npc.pickpocket(npc))
         {
             Rs2Walker.setTarget(null);
 
-            if (rollProbability(5))
+            if (Rs2Random.diceFractional(0.05))
             {
                 sleepGaussian(50, 20);
                 Rs2Npc.pickpocket(npc);
             }
-            if (Rs2Player.isStunned() && rollProbability(4))
+            if (Rs2Player.isStunned() && Rs2Random.diceFractional(0.04))
             {
                 sleepGaussian(50, 20);
                 Rs2Npc.pickpocket(npc);
@@ -239,21 +234,21 @@ public class ThievingScript extends Script
             else if (r < 0.90) sleepGaussian(65, 15);
             else               sleepGaussian(200, 50);
 
-            if (Math.random() < 0.04)
+            if (Rs2Random.diceFractional(0.05))
             {
                 Rs2Npc.hoverOverActor(npc);
                 sleepGaussian(200, 50);
             }
-            if (Math.random() < 0.05)
+            if (Rs2Random.diceFractional(0.05))
             {
                 sleepGaussian(40, 10);
                 Rs2Npc.pickpocket(npc);
             }
-            if (Math.random() < 0.005)
+            if (Rs2Random.diceFractional(0.01))
             {
                 sleepGaussian(4200, 1200);
             }
-            if (rollProbability(3))
+            if (Rs2Random.diceFractional(0.03))
             {
                 Rs2Camera.rotateCameraRandomly();
             }
@@ -268,12 +263,6 @@ public class ThievingScript extends Script
         Rs2Walker.walkTo(NPC_LINDIR_ELF);
 
         if (Microbot.getClient().getBoostedSkillLevel(Skill.PRAYER) > 0
-                && !Rs2Prayer.isPrayerActive(Rs2PrayerEnum.RAPID_HEAL))
-        {
-            Rs2Prayer.toggle(Rs2PrayerEnum.RAPID_HEAL, true);
-            sleepGaussian(300, 50);
-        }
-        if (Microbot.getClient().getBoostedSkillLevel(Skill.PRAYER) > 0
                 && Microbot.getClient().getBoostedSkillLevel(Skill.HITPOINTS) < 30
                 && !Rs2Prayer.isPrayerActive(Rs2PrayerEnum.REDEMPTION))
         {
@@ -282,11 +271,6 @@ public class ThievingScript extends Script
         }
 
         attemptPickpocket(target);
-    }
-
-    private boolean rollProbability(int pct)
-    {
-        return Rs2Random.nextInt(1, 100, 1.0, false) <= pct;
     }
 
     private boolean doorInTheWay(NPC npc)
@@ -376,22 +360,12 @@ public class ThievingScript extends Script
         if (!open || !Rs2Bank.isOpen()) return;
 
         Rs2Bank.depositAll();
-        Rs2Bank.withdrawX("dodgy necklace", config.dodgyNecklaceAmount());
-        if (config.shadowVeil())
-        {
-            Rs2Bank.withdrawRunePouch();
-            Rs2Inventory.waitForInventoryChanges(5000);
-        }
+        Rs2Bank.withdrawX("dodgy necklace", 21);
+
+        Rs2Bank.withdrawRunePouch();
+        Rs2Inventory.waitForInventoryChanges(5000);
+
         Rs2Bank.closeBank();
         sleepUntil(() -> !Rs2Bank.isOpen(), 5000);
-    }
-
-    private void dropItems()
-    {
-        List<String> keep = new ArrayList<>(
-                Arrays.asList(config.DoNotDropItemList().split(","))
-        );
-        keep.addAll(DEFAULT_KEEP);
-        Rs2Inventory.dropAllExcept(config.keepItemsAboveValue(), keep);
     }
 }
