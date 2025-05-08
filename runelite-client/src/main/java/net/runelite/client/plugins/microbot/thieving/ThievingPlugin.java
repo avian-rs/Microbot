@@ -1,8 +1,6 @@
 package net.runelite.client.plugins.microbot.thieving;
 
-import com.google.inject.Provides;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.client.config.ConfigManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
@@ -18,13 +16,6 @@ import java.awt.*;
 )
 @Slf4j
 public class ThievingPlugin extends Plugin {
-    @Inject
-    private ThievingConfig config;
-
-    @Provides
-    ThievingConfig provideConfig(ConfigManager configManager) {
-        return configManager.getConfig(ThievingConfig.class);
-    }
 
     @Inject
     private OverlayManager overlayManager;
@@ -40,7 +31,7 @@ public class ThievingPlugin extends Plugin {
         if (overlayManager != null) {
             overlayManager.add(thievingOverlay);
         }
-        thievingScript.run(config);
+        thievingScript.run();
     }
 
     protected void shutDown() {
