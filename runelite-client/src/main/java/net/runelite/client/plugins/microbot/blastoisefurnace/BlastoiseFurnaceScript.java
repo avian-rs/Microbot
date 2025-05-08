@@ -107,9 +107,6 @@ public class BlastoiseFurnaceScript extends Script {
                             int energyThreshold   = highAgility ? 4100 : 7500;
                             int currentEnergy     = client.getEnergy();
 
-                            if (!highAgility) {
-                                simulateRandomBreak();
-                            }
                             if (currentEnergy < energyThreshold
                                     && !Rs2Player.hasStaminaBuffActive())
                             {
