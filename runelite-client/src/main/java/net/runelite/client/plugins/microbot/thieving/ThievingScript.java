@@ -132,12 +132,6 @@ public class ThievingScript extends Script
     {
         for (int attempt = 1; attempt <= 3; attempt++)
         {
-//            List<GameObject> closed = Rs2GameObject.getGameObjects(DOOR_CLOSED_ID);
-//            if (closed.isEmpty())
-//            {
-//                return true;
-//            }
-
             Microbot.log("Opening door, attempt " + attempt);
 
             Rs2GameObject.interact(DOOR_NPC_LINDIR, "Open");
@@ -165,7 +159,7 @@ public class ThievingScript extends Script
     {
         int roll = Rs2Random.nextInt(1, 100, 1.0, false);
 
-        if (roll <= 15)
+        if (roll <= 10)
         {
             // stash runes
             if (Rs2Inventory.contains("Rune pouch"))
@@ -208,7 +202,7 @@ public class ThievingScript extends Script
         else if (roll <= 55)
         {
             // misclick pickpocket
-            if (Rs2Random.nextInt(1, 100, 1.0, false) <= 50)
+            if (Rs2Random.nextInt(1, 100, 1.0, false) <= 15)
             {
                 sleepGaussian(110, 25);
                 NPC target = getTargetNpc();
@@ -271,15 +265,18 @@ public class ThievingScript extends Script
             }
             double r = Math.random();
             if (r < 0.70) {
-                sleepGaussian(95, 28);
+                sleepGaussian(82, 22);
             } else if (r < 0.90) {
                 sleepGaussian(65, 15);
             } else {
+                sleepGaussian(149, 40);
+            }
+            if (Math.random() < 0.04) {
+                Rs2Npc.hoverOverActor(npc);
                 sleepGaussian(200, 50);
             }
-
 // 2) Occasional double-click “combo” (e.g. 15% chance):
-            if (Math.random() < 0.15) {
+            if (Math.random() < 0.05) {
                 // second click after a very short human-like pause
                 sleepGaussian(40, 10);
                 Rs2Npc.pickpocket(npc); // or your click action
