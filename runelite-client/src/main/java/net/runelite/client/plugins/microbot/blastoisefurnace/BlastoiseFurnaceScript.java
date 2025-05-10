@@ -102,10 +102,14 @@ public class BlastoiseFurnaceScript extends Script {
                             }
                             // pick your threshold based on Agility level
                             var client            = Microbot.getClient();
-                            int agilityLevel      = client.getRealSkillLevel(Skill.AGILITY);
-                            boolean highAgility   = agilityLevel > 60;
-                            int energyThreshold   = highAgility ? 4100 : 7500;
-                            int currentEnergy     = client.getEnergy();
+                            int agilityLevel = client.getRealSkillLevel(Skill.AGILITY);
+                            int energyThreshold = agilityLevel > 60 ? 4100 : 7500;
+                            int currentEnergy = client.getEnergy();
+
+                            Microbot.log("Agility Level: " + agilityLevel);
+                            Microbot.log("Energy Threshold: " + energyThreshold);
+                            Microbot.log("Current Energy: " + currentEnergy);
+                            Microbot.log("STAMINA BUFF ACTIVE STATUS : " + Rs2Player.hasStaminaBuffActive());
 
                             if (currentEnergy < energyThreshold
                                     && !Rs2Player.hasStaminaBuffActive())
