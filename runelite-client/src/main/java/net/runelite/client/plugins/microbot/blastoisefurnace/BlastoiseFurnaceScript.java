@@ -1,18 +1,13 @@
-
-
 package net.runelite.client.plugins.microbot.blastoisefurnace;
 
 import java.awt.event.KeyEvent;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 import net.runelite.api.Skill;
 import net.runelite.client.plugins.microbot.shortestpath.ShortestPathPlugin;
 import net.runelite.client.plugins.microbot.util.antiban.Rs2Antiban;
-import net.runelite.client.plugins.microbot.util.antiban.Rs2AntibanSettings;
 
 import net.runelite.api.ItemID;
 import net.runelite.api.ObjectID;
@@ -100,7 +95,24 @@ public class BlastoiseFurnaceScript extends Script {
                                 }
                                 Rs2Bank.withdrawItem(COAL_BAG);
                             }
-                            // pick your threshold based on Agility level
+
+                            // 3) Deposit bars but keep potion & vial
+                            if (Rs2Inventory.hasItem("bar")) {
+                                Rs2Bank.depositAllExcept(
+                                        COAL_BAG
+                                );
+                            }
+
+
+                            // 4) Out of ores?
+                            if (!hasRequiredOresForSmithing()) {
+                                Rs2Walker.walkTo(new WorldPoint(2930, 10196, 0));
+                                Rs2Player.logout();
+                                shutdown();
+                                return;
+                            }
+
+// pick your threshold based on Agility level
                             var client            = Microbot.getClient();
                             int agilityLevel = client.getRealSkillLevel(Skill.AGILITY);
                             int energyThreshold = agilityLevel > 60 ? 4100 : 7500;
@@ -119,23 +131,6 @@ public class BlastoiseFurnaceScript extends Script {
                                     return;
                                 }
                             }
-                            // 3) Deposit bars but keep potion & vial
-                            if (Rs2Inventory.hasItem("bar")) {
-                                Rs2Bank.depositAllExcept(
-                                        COAL_BAG
-                                );
-                            }
-
-                            // 4) Out of ores?
-                            if (!hasRequiredOresForSmithing()) {
-                                Rs2Walker.walkTo(new WorldPoint(2930, 10196, 0));
-                                Rs2Player.logout();
-                                shutdown();
-                                return;
-                            }
-
-                            // 5) **Single** energy+buff check
-
 
                             // 6) Normal dispenser / smithing flow…
                             if (dispenserContainsBars()) {
@@ -197,7 +192,7 @@ public class BlastoiseFurnaceScript extends Script {
             boolean interactionSuccessful = sleepUntil(() ->
                     Rs2Widget.hasWidget("What would you like to take?") ||
                             Rs2Widget.hasWidget("How many would you like") ||
-                            Rs2Widget.hasWidget("The bars are still molten!"), 5000);
+                            Rs2Widget.hasWidget("The bars are still molten!"), 1500);
 
             if (!interactionSuccessful) {
                 retries++;
@@ -216,7 +211,7 @@ public class BlastoiseFurnaceScript extends Script {
                 Rs2GameObject.interact(BAR_DISPENSER, "Take");
                 sleepUntil(() ->
                         Rs2Widget.hasWidget("What would you like to take?") ||
-                                Rs2Widget.hasWidget("How many would you like"), 3000);
+                                Rs2Widget.hasWidget("How many would you like"), 1500);
             }
 
             boolean canLootBar = Rs2Widget.hasWidget("How many would you like");
@@ -224,12 +219,12 @@ public class BlastoiseFurnaceScript extends Script {
 
             if (canLootBar || multipleBarTypes) {
                 Rs2Keyboard.keyPress(KeyEvent.VK_SPACE);
-                Rs2Inventory.waitForInventoryChanges(5000);
+                Rs2Inventory.waitForInventoryChanges(1000);
                 break;
             }
 
             retries++;
-            sleep(600);
+            sleepGaussian(600, 100);
         }
 
         if (retries >= MAX_RETRIES) {
@@ -449,84 +444,26 @@ public class BlastoiseFurnaceScript extends Script {
         if (!Rs2Bank.hasItem(POT))
         {
             Microbot.log("No 1-dose stamina pots left!");
+            Rs2Player.logout();
             return false;
         }
-
+        Microbot.log("WIthdrawing 1-dose stamina pot");
         Rs2Bank.withdrawOne(POT);
-        sleepGaussian(650, 150);
+        Rs2Inventory.waitForInventoryChanges(1000);
 
         if (Rs2Inventory.interact(POT, "Drink"))
         {
-            sleepUntil(Rs2Player::hasStaminaBuffActive, 5_000);
+            sleepUntil(Rs2Player::hasStaminaBuffActive, 1000);
             if (Rs2Inventory.hasItem(ItemID.VIAL))
             {
                 Rs2Bank.depositOne(ItemID.VIAL);
+                Rs2Inventory.waitForInventoryChanges(1000);
             }
             Microbot.log("Drank stamina pot.");
             return true;
         }
 
         return false;
-    }
-//    private void useStaminaPotions(int energyThreshold) {
-//
-//        boolean usedPotion = false;
-//
-//        // Step 2: If energy is above 71% but below 81%, use Stamina potion if no stamina buff is active
-//        if (Microbot.getClient().getEnergy() < energyThreshold && !Rs2Player.hasStaminaBuffActive()) {
-//            usedPotion = usePotionIfNeeded(12631, energyThreshold);
-//        }
-//
-//        // Sleep after using a potion
-//        if (usedPotion) {
-//            sleepGaussian(250,50);
-//        }
-//    }
-
-    private boolean usePotionIfNeeded(int id, int energyThreshold) {
-        if (Microbot.getClient().getEnergy() < energyThreshold) {
-            if (withdrawPotion(id)) {
-                if (drinkPotion(id)) {
-                    depositItems(id);
-                    return true; // Potion was successfully used
-                }
-            }
-        }
-        return false; // Potion was not used
-    }
-
-    private boolean withdrawPotion(String potionName) {
-        Rs2Bank.withdrawOne(potionName);
-        sleepGaussian(650,150);
-        return true;
-    }
-    private boolean withdrawPotion(int id) {
-        Rs2Bank.withdrawOne(id);
-        sleepGaussian(650,150);
-        return true;
-    }
-
-    private boolean drinkPotion(int id) {
-        Rs2Inventory.interact(id, "Drink");
-        sleepGaussian(650,150);
-        return true;
-    }
-
-    private void depositItems(String potionName) {
-        if (Rs2Inventory.hasItem(potionName)) {
-            Rs2Bank.depositOne(potionName);
-        }
-        if (Rs2Inventory.hasItem(ItemID.VIAL)) {
-            Rs2Bank.depositOne(ItemID.VIAL);
-        }
-    }
-    private void depositItems(int id) {
-        if (Rs2Inventory.hasItem(id)) {
-            Rs2Bank.depositOne(id);
-        }
-        if (Rs2Inventory.hasItem(ItemID.VIAL)) {
-            Rs2Bank.depositOne(ItemID.VIAL);
-        }
     }
 
     private void depositOre() {
