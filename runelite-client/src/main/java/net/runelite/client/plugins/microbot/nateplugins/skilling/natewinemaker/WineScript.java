@@ -2,6 +2,7 @@ package net.runelite.client.plugins.microbot.nateplugins.skilling.natewinemaker;
 
 import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.plugins.microbot.Script;
+import net.runelite.client.plugins.microbot.util.antiban.Rs2Antiban;
 import net.runelite.client.plugins.microbot.util.bank.Rs2Bank;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2Inventory;
 import net.runelite.client.plugins.microbot.util.widget.Rs2Widget;
@@ -13,6 +14,9 @@ public class WineScript extends Script {
     public static double version = 1.1;
 
     public boolean run(WineConfig config) {
+        Microbot.enableAutoRunOn = false;
+        Rs2Antiban.resetAntibanSettings();
+        Rs2Antiban.antibanSetupTemplates.applyUniversalAntibanSetup();
         mainScheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
             if (!super.run()) return;
             if (!Microbot.isLoggedIn()) return;

@@ -16,14 +16,18 @@ import net.runelite.client.plugins.microbot.util.antiban.enums.ActivityIntensity
 import net.runelite.client.plugins.microbot.util.bank.Rs2Bank;
 import net.runelite.client.plugins.microbot.util.camera.Rs2Camera;
 import net.runelite.client.plugins.microbot.util.combat.Rs2Combat;
+import net.runelite.client.plugins.microbot.util.depositbox.DepositBoxLocation;
+import net.runelite.client.plugins.microbot.util.depositbox.Rs2DepositBox;
 import net.runelite.client.plugins.microbot.util.equipment.Rs2Equipment;
 import net.runelite.client.plugins.microbot.util.gameobject.Rs2GameObject;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2Inventory;
+import net.runelite.client.plugins.microbot.util.keyboard.Rs2Keyboard;
 import net.runelite.client.plugins.microbot.util.math.Rs2Random;
 import net.runelite.client.plugins.microbot.util.player.Rs2Player;
 import net.runelite.client.plugins.microbot.util.tile.Rs2Tile;
 import net.runelite.client.plugins.microbot.util.walker.Rs2Walker;
 
+import java.awt.event.KeyEvent;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Optional;
@@ -134,7 +138,23 @@ public class MotherloadMineScript extends Script
             Rs2Combat.setSpecState(true, 1000);
         }
     }
+    /**
+     * @return how many pay-dirt are in your sack right now
+     */
+    private int getCurrentSackFill()
+    {
+        // Microbot.getVarbitValue just wraps client.getVarbitValue(...)
+        return Microbot.getVarbitValue(Varbits.SACK_NUMBER);
+    }
 
+//    /**
+//     * @return the max capacity of your sack (81 or 162)
+//     */
+//    private int getSackCapacity()
+//    {
+//        boolean upgraded = Microbot.getVarbitValue(Varbits.SACK_UPGRADED) == 1;
+//        return upgraded ? SACK_LARGE_SIZE : SACK_SIZE;
+//    }
     private void determineStatusFromInventory()
     {
         updateSackSize();
@@ -160,7 +180,7 @@ public class MotherloadMineScript extends Script
             resetMiningState();
             if (Rs2Inventory.hasItem(ItemID.PAYDIRT))
             {
-                if (Rs2GameObject.getGameObjects(o -> o.getId() == ObjectID.BROKEN_STRUT).size() > 1 && (Rs2Inventory.hasItem("hammer") || Rs2Equipment.isWearing("hammer")))
+                if (Rs2GameObject.getGameObjects(ObjectID.BROKEN_STRUT).size() > 1 && Rs2Inventory.hasItem("hammer") && getCurrentSackFill() > 81)
                 {
                     status = MLMStatus.FIXING_WATERWHEEL;
                 }
@@ -183,7 +203,7 @@ public class MotherloadMineScript extends Script
 
     private boolean hasRequiredTools()
     {
-        boolean hasHammer = Rs2Inventory.hasItem("hammer") || Rs2Equipment.isWearing("hammer");
+        boolean hasHammer = Rs2Inventory.hasItem("hammer");
         boolean hasPickaxe = !config.pickAxeInInventory() || Rs2Inventory.hasItem(pickaxeName);
         return hasHammer && hasPickaxe;
     }
@@ -227,8 +247,12 @@ public class MotherloadMineScript extends Script
             }
             if (hasOreInInventory())
             {
-                bankItems();
+                bankOres();
             }
+        }
+        if (hasOreInInventory())
+        {
+            bankOres();
         }
 
         shouldEmptySack = false;
@@ -282,20 +306,37 @@ public class MotherloadMineScript extends Script
         }
     }
 
+
+    private void bankOres()
+    {
+        // 1. Walk to & open the nearest deposit box
+        Rs2DepositBox.walkToAndUseDepositBox(DepositBoxLocation.MOTHERLODE_MINE);
+        sleepUntil(Rs2DepositBox::isOpen);
+
+        // 2. Deposit everything & wait until the inventory actually changes
+        Rs2Inventory.waitForInventoryChanges(Rs2DepositBox::depositAll);
+
+        // 3. Close the deposit‐box interface
+        Rs2Keyboard.keyPress(KeyEvent.VK_ESCAPE);
+        sleepUntil(() -> !Rs2DepositBox.isOpen());
+
+        // 4. Reset back to mining
+        status = MLMStatus.IDLE;
+    }
     private void bankItems()
     {
         if (Rs2Bank.useBank())
         {
             sleepUntil(Rs2Bank::isOpen);
             Rs2Bank.depositAllExcept("hammer", pickaxeName);
-            sleep(100, 300);
+            sleepGaussian(500,100);
 
-            if (!Rs2Inventory.hasItem("hammer") || Rs2Equipment.isWearing("hammer"))
+            if (!Rs2Inventory.hasItem("hammer"))
             {
                 if (!Rs2Bank.hasItem("hammer"))
                 {
                     Microbot.showMessage("No hammer found in the bank.");
-                    sleep(5000);
+                    sleepGaussian(3000,200);
                     return;
                 }
                 Rs2Bank.withdrawOne("hammer", true);
@@ -305,7 +346,7 @@ public class MotherloadMineScript extends Script
             {
                 Rs2Bank.withdrawOne(pickaxeName);
             }
-            sleep(600);
+            sleepGaussian(500, 100);
         }
         status = MLMStatus.IDLE;
     }

@@ -390,4 +390,7 @@ public class Rs2Widget {
         return true;
     }
 
+    public static boolean isBankCollectBoxWidgetOpen() {
+        return isWidgetVisible(402, 0);
+    }
 }

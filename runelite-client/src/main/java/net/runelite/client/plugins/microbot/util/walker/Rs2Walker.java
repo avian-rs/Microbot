@@ -83,7 +83,29 @@ public class Rs2Walker {
         return walkWithState(new WorldPoint(x, y, plane), distance) == WalkerState.ARRIVED;
     }
 
+    /**
+     * Walk to somewhere “near” the target so you don't always click the exact same tile.
+     *
+     * @param target  The exact destination point
+     * @param radius  Maximum deviation in tiles (e.g. 2 means ±2 in X and Y)
+     * @return        true if we arrive within config.reachedDistance()
+     */
+    public static boolean walkToWithDeviation(WorldPoint target, int radius)
+    {
+        // pick a random offset between -radius and +radius (inclusive)
+        int dx = Rs2Random.nextInt(-radius, radius, 1.0, false);
+        int dy = Rs2Random.nextInt(-radius, radius, 1.0, false);
 
+        // compute the “jittered” destination
+        WorldPoint jitter = new WorldPoint(
+                target.getX() + dx,
+                target.getY() + dy,
+                target.getPlane()
+        );
+
+        // now walkTo that jittered point
+        return walkTo(jitter, config.reachedDistance());
+    }
     public static boolean walkTo(WorldPoint target) {
         return walkWithState(target, config.reachedDistance()) == WalkerState.ARRIVED;
     }

@@ -146,30 +146,24 @@ public class Rs2Inventory {
      * @return True if the combine operation was successful, false otherwise.
      */
     public static boolean combine(Rs2ItemModel primary, Rs2ItemModel secondary) {
-        // Get the primary item
-        Rs2ItemModel primaryItem = get(item -> item.getId() == primary.getId());
-        if (primaryItem == null) {
-            Microbot.log("Primary item not found in the inventory.");
+        // Use exactly the passed‐in primary slot
+        if (primary == null) {
+            Microbot.log("Primary model is null.");
             return false;
         }
-
-        // Select the primary item
-        boolean primaryItemInteracted = use(primaryItem);
-        if (!primaryItemInteracted) {
+        boolean primaryInteracted = use(primary);
+        if (!primaryInteracted) {
             return false;
         }
         sleep(100, 175);
 
-        // Get a secondary item that isn't the same as the primary
-        Rs2ItemModel secondaryItem = get(item -> item.getId() == secondary.getId() && item.getSlot() != primaryItem.getSlot());
-        if (secondaryItem == null) {
-            Microbot.log("No valid secondary item found to combine with.");
+        // Use exactly the passed‐in secondary slot
+        if (secondary == null) {
+            Microbot.log("Secondary model is null.");
             return false;
         }
-
-        // Interact with the secondary item
-        boolean secondaryItemInteracted = use(secondaryItem);
-        return primaryItemInteracted && secondaryItemInteracted;
+        boolean secondaryInteracted = use(secondary);
+        return primaryInteracted && secondaryInteracted;
     }
 
     /**
@@ -590,19 +584,51 @@ public class Rs2Inventory {
      *
      * @return True if all matching items were successfully dropped, false otherwise.
      */
-    public static boolean dropAll(Predicate<Rs2ItemModel> predicate, InteractOrder dropOrder) {
+    public static boolean dropAll(Predicate<Rs2ItemModel> predicate, InteractOrder dropOrder)
+    {
+        // 1) filter & order
         List<Rs2ItemModel> itemsToDrop = items().stream()
                 .filter(predicate)
                 .collect(Collectors.toList());
+        itemsToDrop = calculateInteractOrder(itemsToDrop, dropOrder);
 
-       itemsToDrop = calculateInteractOrder(itemsToDrop, dropOrder);
-
-        for (Rs2ItemModel item : itemsToDrop) {
+        // 2) iterate & inject human‐like mistakes on EFFICIENT_ROW
+        for (Rs2ItemModel item : itemsToDrop)
+        {
             if (item == null) continue;
+
+            if (dropOrder == InteractOrder.EFFICIENT_ROW)
+            {
+                // 5% chance to forget this drop
+                if (Rs2Random.nextInt(1, 100, 1.0, false) <= 5)
+                {
+                    Microbot.log("Whoops—forgot to drop " + item.getName());
+                    sleepGaussian(200, 50);
+                    continue;
+                }
+
+                // 3% chance to mis-click a random slot first
+                if (Rs2Random.nextInt(1, 100, 1.0, false) <= 3)
+                {
+                    int randomSlot = Rs2Random.nextInt(0, CAPACITY - 1, 1.0, false);
+                    Rs2ItemModel wrong = inventoryItems.stream()
+                            .filter(x -> x.getSlot() == randomSlot)
+                            .findFirst().orElse(null);
+                    if (wrong != null)
+                    {
+                        invokeMenu(wrong, "Drop");
+                        Microbot.log("Mis-clicked on slot " + randomSlot + " (" + wrong.getName() + ")");
+                        sleepGaussian(200, 50);
+                    }
+                }
+            }
+
+            // 3) the real drop
             invokeMenu(item, "Drop");
             if (!Rs2AntibanSettings.naturalMouse)
-                sleep(150, 300);
+                sleepGaussian(225, 75);
         }
+
         return true;
     }
 

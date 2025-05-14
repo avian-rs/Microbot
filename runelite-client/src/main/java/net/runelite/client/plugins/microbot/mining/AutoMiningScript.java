@@ -108,6 +108,7 @@ public class AutoMiningScript extends Script {
                             if (Rs2GameObject.interact(rock)) {
                                 Rs2Player.waitForXpDrop(Skill.MINING, true);
                                 Rs2Antiban.actionCooldown();
+                                sleepGaussian(850, 150);
                                 Rs2Antiban.takeMicroBreakByChance();
                             }
                         }
@@ -147,7 +148,7 @@ public class AutoMiningScript extends Script {
             } catch (Exception ex) {
                 Microbot.log(ex.getMessage());
             }
-        }, 0, 100, TimeUnit.MILLISECONDS);
+        }, 0, Rs2Random.randomGaussian(650, 100), TimeUnit.MILLISECONDS);
         return true;
     }
 

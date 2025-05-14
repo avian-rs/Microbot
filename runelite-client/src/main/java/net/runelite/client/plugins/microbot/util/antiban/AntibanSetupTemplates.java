@@ -1,6 +1,9 @@
 package net.runelite.client.plugins.microbot.util.antiban;
 
 import net.runelite.client.plugins.microbot.util.antiban.enums.Activity;
+import net.runelite.client.plugins.microbot.util.antiban.enums.ActivityIntensity;
+
+import static net.runelite.client.plugins.microbot.util.antiban.enums.ActivityIntensity.LOW;
 
 /**
  * The {@code AntibanSetupTemplates} class provides predefined antiban setup configurations tailored to specific
@@ -69,9 +72,6 @@ public class AntibanSetupTemplates {
      * and mouse movement variability to reduce detection risk.
      */
     public void applyCombatSetup() {
-        if (Rs2AntibanSettings.overwriteScriptSettings){
-            return;
-        }
         Rs2AntibanSettings.antibanEnabled = true;
         Rs2AntibanSettings.usePlayStyle = true;
         Rs2AntibanSettings.randomIntervals = false;
@@ -102,9 +102,6 @@ public class AntibanSetupTemplates {
      * This setup adjusts settings to simulate human-like behaviors during runecrafting tasks.
      */
     public void applyRunecraftingSetup() {
-        if (Rs2AntibanSettings.overwriteScriptSettings){
-            return;
-        }
         // Implementation for Runecrafting setup
         Rs2AntibanSettings.antibanEnabled = true;
         Rs2AntibanSettings.usePlayStyle = true;
@@ -115,20 +112,25 @@ public class AntibanSetupTemplates {
         Rs2AntibanSettings.nonLinearIntervals = true;
         Rs2AntibanSettings.profileSwitching = true;
         Rs2AntibanSettings.timeOfDayAdjust = false;
-        Rs2AntibanSettings.simulateMistakes = false;
+        Rs2AntibanSettings.simulateMistakes = true;
         Rs2AntibanSettings.naturalMouse = true;
         Rs2AntibanSettings.contextualVariability = true;
         Rs2AntibanSettings.dynamicIntensity = false;
         Rs2AntibanSettings.dynamicActivity = false;
         Rs2AntibanSettings.devDebug = false;
-        Rs2AntibanSettings.takeMicroBreaks = false;
-        Rs2AntibanSettings.playSchedule = true;
-        Rs2AntibanSettings.universalAntiban = false;
-        Rs2AntibanSettings.microBreakDurationLow = 3;
-        Rs2AntibanSettings.microBreakDurationHigh = 8;
-        Rs2AntibanSettings.actionCooldownChance = 1.00;
-        Rs2AntibanSettings.microBreakChance = 0.05;
-        Rs2Antiban.setActivity(Activity.GENERAL_RUNECRAFT);
+        Rs2AntibanSettings.takeMicroBreaks = true;
+        Rs2AntibanSettings.playSchedule = false;
+        Rs2AntibanSettings.universalAntiban = true;
+        Rs2AntibanSettings.microBreakDurationLow = 1;
+        Rs2AntibanSettings.microBreakDurationHigh = 5;
+        Rs2AntibanSettings.actionCooldownChance = 0.07;
+        Rs2AntibanSettings.microBreakChance = 0.005;
+        Rs2AntibanSettings.moveMouseOffScreen = true;
+        Rs2AntibanSettings.moveMouseOffScreenChance = 0.30;
+        Rs2AntibanSettings.moveMouseRandomly = true;
+        Rs2AntibanSettings.moveMouseRandomlyChance = 0.40;
+        Rs2Antiban.setActivityIntensity(ActivityIntensity.LOW);
+        Rs2Antiban.setActivity(Activity.CRAFTING_BLOODS_TRUE_ALTAR);
     }
 
     /**
@@ -136,9 +138,6 @@ public class AntibanSetupTemplates {
      * This setup focuses on mimicking human-like behaviors during construction tasks.
      */
     public void applyConstructionSetup() {
-        if (Rs2AntibanSettings.overwriteScriptSettings){
-            return;
-        }
         // Implementation for Construction setup
         Rs2AntibanSettings.antibanEnabled = true;
         Rs2AntibanSettings.usePlayStyle = true;
@@ -171,9 +170,6 @@ public class AntibanSetupTemplates {
      */
 
     public void applyAgilitySetup() {
-        if (Rs2AntibanSettings.overwriteScriptSettings){
-            return;
-        }
         // Implementation for Agility setup
         Rs2AntibanSettings.antibanEnabled = true;
         Rs2AntibanSettings.usePlayStyle = true;
@@ -205,9 +201,6 @@ public class AntibanSetupTemplates {
      * This setup configures settings to mimic human-like behaviors during herblore tasks.
      */
     public void applyHerbloreSetup() {
-        if (Rs2AntibanSettings.overwriteScriptSettings){
-            return;
-        }
         // Implementation for Herblore setup
         Rs2AntibanSettings.antibanEnabled = true;
         Rs2AntibanSettings.usePlayStyle = true;
@@ -234,15 +227,7 @@ public class AntibanSetupTemplates {
         Rs2Antiban.setActivity(Activity.GENERAL_HERBLORE);
     }
 
-    /**
-     * Applies the antiban setup tailored for thieving activities.
-     * This setup simulates human-like behaviors during thieving tasks to reduce detection risk.
-     */
     public void applyThievingSetup() {
-        if (Rs2AntibanSettings.overwriteScriptSettings){
-            return;
-        }
-        // Implementation for Thieving setup
         Rs2AntibanSettings.antibanEnabled = true;
         Rs2AntibanSettings.usePlayStyle = true;
         Rs2AntibanSettings.randomIntervals = false;
@@ -252,20 +237,20 @@ public class AntibanSetupTemplates {
         Rs2AntibanSettings.nonLinearIntervals = true;
         Rs2AntibanSettings.profileSwitching = true;
         Rs2AntibanSettings.timeOfDayAdjust = false;
-        Rs2AntibanSettings.simulateMistakes = false;
+        Rs2AntibanSettings.simulateMistakes = true;
         Rs2AntibanSettings.naturalMouse = true;
         Rs2AntibanSettings.contextualVariability = true;
         Rs2AntibanSettings.dynamicIntensity = false;
         Rs2AntibanSettings.dynamicActivity = false;
         Rs2AntibanSettings.devDebug = false;
         Rs2AntibanSettings.takeMicroBreaks = false;
-        Rs2AntibanSettings.playSchedule = true;
-        Rs2AntibanSettings.universalAntiban = false;
-        Rs2AntibanSettings.microBreakDurationLow = 3;
-        Rs2AntibanSettings.microBreakDurationHigh = 8;
-        Rs2AntibanSettings.actionCooldownChance = 1.00;
-        Rs2AntibanSettings.microBreakChance = 0.05;
-        Rs2Antiban.setActivity(Activity.GENERAL_THIEVING);
+        Rs2AntibanSettings.playSchedule = false;
+        Rs2AntibanSettings.universalAntiban = true;
+        Rs2AntibanSettings.moveMouseOffScreen = true;
+        Rs2AntibanSettings.moveMouseOffScreenChance = 0.15;
+        Rs2AntibanSettings.moveMouseRandomly = true;
+        Rs2AntibanSettings.moveMouseRandomlyChance = 0.42;
+        Rs2Antiban.setActivityIntensity(ActivityIntensity.LOW);
     }
 
     /**
@@ -273,9 +258,6 @@ public class AntibanSetupTemplates {
      * This setup focuses on human-like behavior simulation during crafting tasks.
      */
     public void applyCraftingSetup() {
-        if (Rs2AntibanSettings.overwriteScriptSettings){
-            return;
-        }
         // Implementation for Crafting setup
         Rs2AntibanSettings.antibanEnabled = true;
         Rs2AntibanSettings.usePlayStyle = true;
@@ -286,19 +268,24 @@ public class AntibanSetupTemplates {
         Rs2AntibanSettings.nonLinearIntervals = true;
         Rs2AntibanSettings.profileSwitching = true;
         Rs2AntibanSettings.timeOfDayAdjust = false;
-        Rs2AntibanSettings.simulateMistakes = false;
+        Rs2AntibanSettings.simulateMistakes = true;
         Rs2AntibanSettings.naturalMouse = true;
         Rs2AntibanSettings.contextualVariability = true;
         Rs2AntibanSettings.dynamicIntensity = false;
         Rs2AntibanSettings.dynamicActivity = false;
         Rs2AntibanSettings.devDebug = false;
         Rs2AntibanSettings.takeMicroBreaks = false;
-        Rs2AntibanSettings.playSchedule = true;
-        Rs2AntibanSettings.universalAntiban = false;
+        Rs2AntibanSettings.playSchedule = false;
+        Rs2AntibanSettings.universalAntiban = true;
         Rs2AntibanSettings.microBreakDurationLow = 3;
         Rs2AntibanSettings.microBreakDurationHigh = 8;
         Rs2AntibanSettings.actionCooldownChance = 1.00;
         Rs2AntibanSettings.microBreakChance = 0.05;
+        Rs2AntibanSettings.moveMouseOffScreen = true;
+        Rs2AntibanSettings.moveMouseOffScreenChance = 0.10;
+        Rs2AntibanSettings.moveMouseRandomly = true;
+        Rs2AntibanSettings.moveMouseRandomlyChance = 0.30;
+        Rs2Antiban.setActivityIntensity(ActivityIntensity.LOW);
         Rs2Antiban.setActivity(Activity.GENERAL_CRAFTING);
     }
 
@@ -307,9 +294,6 @@ public class AntibanSetupTemplates {
      * This setup adjusts settings to mimic human behavior during fletching tasks.
      */
     public void applyFletchingSetup() {
-        if (Rs2AntibanSettings.overwriteScriptSettings){
-            return;
-        }
         // Implementation for Fletching setup
         Rs2AntibanSettings.antibanEnabled = true;
         Rs2AntibanSettings.usePlayStyle = true;
@@ -337,9 +321,6 @@ public class AntibanSetupTemplates {
     }
 
     public void applySlayerSetup() {
-        if (Rs2AntibanSettings.overwriteScriptSettings){
-            return;
-        }
         // Implementation for Slayer setup
     }
 
@@ -348,44 +329,7 @@ public class AntibanSetupTemplates {
      * This setup simulates human-like behaviors during hunting tasks.
      */
     public void applyHunterSetup() {
-        if (Rs2AntibanSettings.overwriteScriptSettings){
-            return;
-        }
         // Implementation for Hunter setup
-        Rs2AntibanSettings.antibanEnabled = true;
-        Rs2AntibanSettings.usePlayStyle = true;
-        Rs2AntibanSettings.randomIntervals = false;
-        Rs2AntibanSettings.simulateFatigue = true;
-        Rs2AntibanSettings.simulateAttentionSpan = true;
-        Rs2AntibanSettings.behavioralVariability = true;
-        Rs2AntibanSettings.nonLinearIntervals = true;
-        Rs2AntibanSettings.profileSwitching = true;
-        Rs2AntibanSettings.timeOfDayAdjust = false;
-        Rs2AntibanSettings.simulateMistakes = false;
-        Rs2AntibanSettings.naturalMouse = true;
-        Rs2AntibanSettings.contextualVariability = true;
-        Rs2AntibanSettings.dynamicIntensity = false;
-        Rs2AntibanSettings.dynamicActivity = false;
-        Rs2AntibanSettings.devDebug = false;
-        Rs2AntibanSettings.takeMicroBreaks = false;
-        Rs2AntibanSettings.playSchedule = true;
-        Rs2AntibanSettings.universalAntiban = false;
-        Rs2AntibanSettings.microBreakDurationLow = 3;
-        Rs2AntibanSettings.microBreakDurationHigh = 8;
-        Rs2AntibanSettings.actionCooldownChance = 1.00;
-        Rs2AntibanSettings.microBreakChance = 0.05;
-        Rs2Antiban.setActivity(Activity.GENERAL_HUNTER);
-    }
-
-    /**
-     * Applies the antiban setup tailored for mining activities.
-     * This setup includes adjustments to mimic human behaviors during mining tasks.
-     */
-    public void applyMiningSetup() {
-        if (Rs2AntibanSettings.overwriteScriptSettings){
-            return;
-        }
-        // Implementation for Mining setup
         Rs2AntibanSettings.antibanEnabled = true;
         Rs2AntibanSettings.usePlayStyle = true;
         Rs2AntibanSettings.randomIntervals = false;
@@ -402,12 +346,52 @@ public class AntibanSetupTemplates {
         Rs2AntibanSettings.dynamicActivity = false;
         Rs2AntibanSettings.devDebug = false;
         Rs2AntibanSettings.takeMicroBreaks = false;
-        Rs2AntibanSettings.playSchedule = true;
+        Rs2AntibanSettings.playSchedule = false;
         Rs2AntibanSettings.universalAntiban = false;
-        Rs2AntibanSettings.microBreakDurationLow = 1;
-        Rs2AntibanSettings.microBreakDurationHigh = 4;
+        Rs2AntibanSettings.microBreakDurationLow = 3;
+        Rs2AntibanSettings.microBreakDurationHigh = 8;
         Rs2AntibanSettings.actionCooldownChance = 1.00;
         Rs2AntibanSettings.microBreakChance = 0.05;
+        Rs2AntibanSettings.moveMouseOffScreen = true;
+        Rs2AntibanSettings.moveMouseOffScreenChance = 0.10;
+        Rs2AntibanSettings.moveMouseRandomly = true;
+        Rs2AntibanSettings.moveMouseRandomlyChance = 0.20;
+        Rs2Antiban.setActivityIntensity(ActivityIntensity.LOW);
+        Rs2Antiban.setActivity(Activity.GENERAL_HUNTER);
+    }
+
+    /**
+     * Applies the antiban setup tailored for mining activities.
+     * This setup includes adjustments to mimic human behaviors during mining tasks.
+     */
+    public void applyMiningSetup() {
+        // Implementation for Mining setup
+        Rs2AntibanSettings.antibanEnabled = true;
+        Rs2AntibanSettings.usePlayStyle = true;
+        Rs2AntibanSettings.randomIntervals = false;
+        Rs2AntibanSettings.simulateFatigue = true;
+        Rs2AntibanSettings.simulateAttentionSpan = true;
+        Rs2AntibanSettings.behavioralVariability = true;
+        Rs2AntibanSettings.nonLinearIntervals = true;
+        Rs2AntibanSettings.profileSwitching = true;
+        Rs2AntibanSettings.timeOfDayAdjust = false;
+        Rs2AntibanSettings.simulateMistakes = true;
+        Rs2AntibanSettings.naturalMouse = true;
+        Rs2AntibanSettings.contextualVariability = true;
+        Rs2AntibanSettings.dynamicIntensity = false;
+        Rs2AntibanSettings.dynamicActivity = true;
+        Rs2AntibanSettings.devDebug = false;
+        Rs2AntibanSettings.takeMicroBreaks = false;
+        Rs2AntibanSettings.playSchedule = false;
+        Rs2AntibanSettings.universalAntiban = true;
+        Rs2AntibanSettings.microBreakDurationLow = 3;
+        Rs2AntibanSettings.microBreakDurationHigh = 8;
+        Rs2AntibanSettings.actionCooldownChance = 1.00;
+        Rs2AntibanSettings.microBreakChance = 0.05;
+        Rs2AntibanSettings.moveMouseOffScreen = true;
+        Rs2AntibanSettings.moveMouseOffScreenChance = 0.10;
+        Rs2AntibanSettings.moveMouseRandomly = true;
+        Rs2AntibanSettings.moveMouseRandomlyChance = 0.30;
         Rs2Antiban.setActivity(Activity.GENERAL_MINING);
     }
 
@@ -416,9 +400,6 @@ public class AntibanSetupTemplates {
      * This setup configures settings to simulate human-like behaviors during smithing tasks.
      */
     public void applySmithingSetup() {
-        if (Rs2AntibanSettings.overwriteScriptSettings){
-            return;
-        }
         // Implementation for Smithing setup
         Rs2AntibanSettings.antibanEnabled = true;
         Rs2AntibanSettings.usePlayStyle = true;
@@ -429,20 +410,24 @@ public class AntibanSetupTemplates {
         Rs2AntibanSettings.nonLinearIntervals = true;
         Rs2AntibanSettings.profileSwitching = true;
         Rs2AntibanSettings.timeOfDayAdjust = false;
-        Rs2AntibanSettings.simulateMistakes = false;
+        Rs2AntibanSettings.simulateMistakes = true;
         Rs2AntibanSettings.naturalMouse = true;
         Rs2AntibanSettings.contextualVariability = true;
         Rs2AntibanSettings.dynamicIntensity = false;
-        Rs2AntibanSettings.dynamicActivity = false;
+        Rs2AntibanSettings.dynamicActivity = true;
         Rs2AntibanSettings.devDebug = false;
         Rs2AntibanSettings.takeMicroBreaks = false;
-        Rs2AntibanSettings.playSchedule = true;
-        Rs2AntibanSettings.universalAntiban = false;
+        Rs2AntibanSettings.playSchedule = false;
+        Rs2AntibanSettings.universalAntiban = true;
         Rs2AntibanSettings.microBreakDurationLow = 3;
         Rs2AntibanSettings.microBreakDurationHigh = 8;
-        Rs2AntibanSettings.actionCooldownChance = 1.00;
+        Rs2AntibanSettings.actionCooldownChance = 0.01;
         Rs2AntibanSettings.microBreakChance = 0.05;
-        Rs2Antiban.setActivity(Activity.GENERAL_SMITHING);
+        Rs2AntibanSettings.moveMouseOffScreen = true;
+        Rs2AntibanSettings.moveMouseOffScreenChance = 0.30;
+        Rs2AntibanSettings.moveMouseRandomly = true;
+        Rs2AntibanSettings.moveMouseRandomlyChance = 0.40;
+        Rs2Antiban.setActivityIntensity(ActivityIntensity.LOW);
     }
 
     /**
@@ -450,9 +435,6 @@ public class AntibanSetupTemplates {
      * This setup focuses on mimicking human-like behaviors during fishing tasks.
      */
     public void applyFishingSetup() {
-        if (Rs2AntibanSettings.overwriteScriptSettings){
-            return;
-        }
         // Implementation for Fishing setup
         Rs2AntibanSettings.antibanEnabled = true;
         Rs2AntibanSettings.usePlayStyle = true;
@@ -484,9 +466,6 @@ public class AntibanSetupTemplates {
      * This setup simulates human-like behaviors during cooking tasks to reduce detection risk.
      */
     public void applyCookingSetup() {
-        if (Rs2AntibanSettings.overwriteScriptSettings){
-            return;
-        }
         // Implementation for Cooking setup
         Rs2AntibanSettings.antibanEnabled = true;
         Rs2AntibanSettings.usePlayStyle = true;
@@ -518,9 +497,6 @@ public class AntibanSetupTemplates {
      * This setup is designed to simulate human behavior during firemaking tasks.
      */
     public void applyFiremakingSetup() {
-        if (Rs2AntibanSettings.overwriteScriptSettings){
-            return;
-        }
         // Implementation for Firemaking setup
         Rs2AntibanSettings.antibanEnabled = true;
         Rs2AntibanSettings.usePlayStyle = true;
@@ -552,9 +528,6 @@ public class AntibanSetupTemplates {
      * This setup mimics human-like behaviors during woodcutting tasks to reduce detection risk.
      */
     public void applyWoodcuttingSetup() {
-        if (Rs2AntibanSettings.overwriteScriptSettings){
-            return;
-        }
         // Implementation for Woodcutting setup
         Rs2AntibanSettings.antibanEnabled = true;
         Rs2AntibanSettings.usePlayStyle = true;
@@ -565,19 +538,23 @@ public class AntibanSetupTemplates {
         Rs2AntibanSettings.nonLinearIntervals = true;
         Rs2AntibanSettings.profileSwitching = true;
         Rs2AntibanSettings.timeOfDayAdjust = false;
-        Rs2AntibanSettings.simulateMistakes = false;
+        Rs2AntibanSettings.simulateMistakes = true;
         Rs2AntibanSettings.naturalMouse = true;
         Rs2AntibanSettings.contextualVariability = true;
         Rs2AntibanSettings.dynamicIntensity = false;
-        Rs2AntibanSettings.dynamicActivity = false;
+        Rs2AntibanSettings.dynamicActivity = true;
         Rs2AntibanSettings.devDebug = false;
-        Rs2AntibanSettings.takeMicroBreaks = false;
-        Rs2AntibanSettings.playSchedule = true;
+        Rs2AntibanSettings.takeMicroBreaks = true;
+        Rs2AntibanSettings.playSchedule = false;
         Rs2AntibanSettings.universalAntiban = false;
         Rs2AntibanSettings.microBreakDurationLow = 3;
         Rs2AntibanSettings.microBreakDurationHigh = 8;
         Rs2AntibanSettings.actionCooldownChance = 1.00;
         Rs2AntibanSettings.microBreakChance = 0.05;
+        Rs2AntibanSettings.moveMouseOffScreen = true;
+        Rs2AntibanSettings.moveMouseOffScreenChance = 0.10;
+        Rs2AntibanSettings.moveMouseRandomly = true;
+        Rs2AntibanSettings.moveMouseRandomlyChance = 0.30;
         Rs2Antiban.setActivity(Activity.GENERAL_WOODCUTTING);
     }
 
@@ -586,9 +563,6 @@ public class AntibanSetupTemplates {
      * This setup configures settings to simulate human-like behaviors during farming tasks.
      */
     public void applyFarmingSetup() {
-        if (Rs2AntibanSettings.overwriteScriptSettings){
-            return;
-        }
         // Implementation for Farming setup
         Rs2AntibanSettings.antibanEnabled = true;
         Rs2AntibanSettings.usePlayStyle = true;
@@ -621,9 +595,6 @@ public class AntibanSetupTemplates {
      * This setup does not include advanced features such as action cooldown, attention span or micro breaks.
      */
     public void applyGeneralBasicSetup() {
-        if (Rs2AntibanSettings.overwriteScriptSettings){
-            return;
-        }
         // Implementation for General Basic setup
         Rs2AntibanSettings.antibanEnabled = true;
         Rs2AntibanSettings.usePlayStyle = false;
@@ -654,10 +625,6 @@ public class AntibanSetupTemplates {
      * This setup does not include advanced features such as action cooldown, attention span or micro breaks.
      */
     public void applyUniversalAntibanSetup() {
-        if (Rs2AntibanSettings.overwriteScriptSettings){
-            return;
-        }
-        // Implementation for General Basic setup
         Rs2AntibanSettings.antibanEnabled = true;
         Rs2AntibanSettings.usePlayStyle = true;
         Rs2AntibanSettings.randomIntervals = false;
@@ -671,7 +638,7 @@ public class AntibanSetupTemplates {
         Rs2AntibanSettings.naturalMouse = true;
         Rs2AntibanSettings.contextualVariability = true;
         Rs2AntibanSettings.dynamicIntensity = true;
-        Rs2AntibanSettings.dynamicActivity = true;
+        Rs2AntibanSettings.dynamicActivity = false;
         Rs2AntibanSettings.devDebug = false;
         Rs2AntibanSettings.takeMicroBreaks = false;
         Rs2AntibanSettings.playSchedule = false;
@@ -680,6 +647,12 @@ public class AntibanSetupTemplates {
         Rs2AntibanSettings.microBreakDurationHigh = 8;
         Rs2AntibanSettings.actionCooldownChance = 1.00;
         Rs2AntibanSettings.microBreakChance = 0.05;
+        Rs2AntibanSettings.moveMouseOffScreen = true;
+        Rs2AntibanSettings.moveMouseOffScreenChance = 0.10;
+        Rs2AntibanSettings.moveMouseRandomly = true;
+        Rs2AntibanSettings.moveMouseRandomlyChance = 0.30;
+        Rs2Antiban.setActivityIntensity(ActivityIntensity.LOW);
+
     }
 
 }
