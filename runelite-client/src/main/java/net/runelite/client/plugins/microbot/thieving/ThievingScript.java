@@ -238,7 +238,7 @@ public class ThievingScript extends Script {
             for (String rune : STASH_RUNES) {
                 if (Rs2Inventory.hasItem(rune)) {
                     Rs2Inventory.interact(rune, "Use");
-                    sleepGaqussian(150, 50);
+                    sleepGaussian(150, 50);
                     Rs2Inventory.interact("Rune pouch", "Use");
                     sleepGaussian(200, 60);
                 }
