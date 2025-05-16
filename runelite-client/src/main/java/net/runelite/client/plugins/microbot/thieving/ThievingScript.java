@@ -437,8 +437,7 @@ public class ThievingScript extends Script
         Microbot.status = "Walking to house portal…";
         if (!ensureDoorOpen()) return;
         sleepGaussian(300, 60);
-
-        Rs2GameObject.interact(POH_PRIFDDINAS_PORTAL, "Home");
+        Rs2GameObject.interact(POH_PRIFDDINAS_PORTAL, "Home", 20);
         sleepUntil(() -> Rs2Player.getWorldLocation().getRegionID() != 12894, 8000);
         sleepGaussian(500, 100);
 
