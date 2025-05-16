@@ -164,7 +164,8 @@ public abstract class SkillCondition implements Condition {
         }
         if (SKILL_DATA_INITIALIZED) {
             return;
-        }        
+        }
+        log.info("Initializing skill data");
         Microbot.getClientThread().invoke(() -> {
             try {
                 // Initialize skill level and XP caches

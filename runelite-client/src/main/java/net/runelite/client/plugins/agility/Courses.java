@@ -26,11 +26,8 @@ package net.runelite.client.plugins.agility;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
-import java.util.function.Function;
 import lombok.Getter;
-import net.runelite.api.Client;
 import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.gameval.VarbitID;
 
 enum Courses
 {
@@ -51,15 +48,15 @@ enum Courses
 	WEREWOLF(730.0, 14234, new WorldPoint(3528, 9873, 0)),
 	SEERS(570.0, 10806, new WorldPoint(2704, 3464, 0)),
 	COLOSSAL_WYRM_ADVANCED(685),
-	POLLNIVNEACH((client) -> client.getVarbitValue(VarbitID.DESERT_DIARY_HARD_COMPLETE) == 1 ? 1016.0 : 890.0, 13358, new WorldPoint(3363, 2998, 0)),
-	RELLEKA((client) -> client.getVarbitValue(VarbitID.FREMENNIK_DIARY_HARD_COMPLETE) == 1 ? 920.0 : 780.0, 10553, new WorldPoint(2653, 3676, 0)),
+	POLLNIVNEACH(1016.0, 13358, new WorldPoint(3363, 2998, 0)),
+	RELLEKA(920.0, 10553, new WorldPoint(2653, 3676, 0)),
 	PRIFDDINAS(1337.0, 12895, new WorldPoint(3240, 6109, 0)),
 	ARDOUGNE(889.0, 10547, new WorldPoint(2668, 3297, 0));
 
 	private final static Map<Integer, Courses> coursesByRegion;
 
 	@Getter
-	private final Function<Client, Double> totalXpProvider;
+	private final double totalXp;
 
 	@Getter
 	private final int regionId;
@@ -90,12 +87,7 @@ enum Courses
 
 	Courses(double totalXp, int regionId, WorldPoint... courseEndWorldPoints)
 	{
-		this((client) -> totalXp, regionId, courseEndWorldPoints);
-	}
-
-	Courses(Function<Client, Double> totalXpProvider, int regionId, WorldPoint... courseEndWorldPoints)
-	{
-		this.totalXpProvider = totalXpProvider;
+		this.totalXp = totalXp;
 		this.regionId = regionId;
 		this.courseEndWorldPoints = courseEndWorldPoints;
 	}

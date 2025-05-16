@@ -52,6 +52,7 @@ import net.runelite.api.SpriteID;
 import net.runelite.api.events.MenuEntryAdded;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.gameval.InterfaceID;
+import net.runelite.api.widgets.ComponentID;
 import net.runelite.api.widgets.JavaScriptCallback;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetConfig;
@@ -189,11 +190,11 @@ class WidgetInspector extends DevToolsFrame
 			});
 
 		final JScrollPane treeScrollPane = new JScrollPane(widgetTree);
-		treeScrollPane.setPreferredSize(new Dimension(400, 800));
+		treeScrollPane.setPreferredSize(new Dimension(200, 400));
 
 		final JTable widgetInfo = new JTable(infoTableModel);
 		final JScrollPane infoScrollPane = new JScrollPane(widgetInfo);
-		infoScrollPane.setPreferredSize(new Dimension(600, 800));
+		infoScrollPane.setPreferredSize(new Dimension(400, 400));
 
 		final JPanel bottomPanel = new JPanel();
 		add(bottomPanel, BorderLayout.SOUTH);
@@ -373,14 +374,9 @@ class WidgetInspector extends DevToolsFrame
 			//until it's actually needed.
 			try
 			{
-				for (Class<?> innerClass : InterfaceID.class.getDeclaredClasses())
+				for (Field f : ComponentID.class.getDeclaredFields())
 				{
-					for (Field field : innerClass.getDeclaredFields())
-					{
-						int id = field.getInt(null);
-						String name = innerClass.getSimpleName() + "." + field.getName();
-						widgetNames.put(id, name);
-					}
+					widgetNames.put(f.getInt(null), f.getName());
 				}
 			}
 			catch (IllegalAccessException ex)

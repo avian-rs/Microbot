@@ -90,9 +90,6 @@ public class SchedulerWindow extends JFrame implements ConditionUpdateCallback {
 
         // Set up form panel to clear table selection when ComboBox changes
         formPanel.setSelectionChangeListener(() -> {
-            if (tablePanel.getSelectedPlugin() == null) {                
-                return;            
-            }
             tablePanel.clearSelection();
         });
 
@@ -781,7 +778,6 @@ public class SchedulerWindow extends JFrame implements ConditionUpdateCallback {
             tablePanel.refreshTable();
             
             // Clear edit mode and selection to encourage users to review the changes
-            formPanel.loadPlugin(selectedPlugin);
             formPanel.setEditMode(false);
             tablePanel.clearSelection();
             
@@ -822,9 +818,7 @@ public class SchedulerWindow extends JFrame implements ConditionUpdateCallback {
         }
         
         // Stop the plugin if it's running
-        if (plugin.getCurrentPlugin()!=null && 
-            plugin.getCurrentPlugin().equals(selectedPlugin) && 
-            selectedPlugin.isRunning()) {
+        if (plugin.getCurrentPlugin()!=null && plugin.getCurrentPlugin().equals(selectedPlugin) && selectedPlugin.isRunning()) {
 
             plugin.forceStopCurrentPluginScheduleEntry(false);
         }
@@ -838,7 +832,7 @@ public class SchedulerWindow extends JFrame implements ConditionUpdateCallback {
         formPanel.clearForm();
         startConditionPanel.setSelectScheduledPlugin(null);
         stopConditionPanel.setSelectScheduledPlugin(null);
-        formPanel.setEditMode(false);
+        
         JOptionPane.showMessageDialog(this,
             "Plugin removed from schedule.",
             "Plugin Removed",

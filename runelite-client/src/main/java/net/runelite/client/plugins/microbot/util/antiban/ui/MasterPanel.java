@@ -145,7 +145,7 @@ public class MasterPanel extends PluginPanel {
     //set up the reset button to reset all settings
     public void setupResetButton() {
         resetButton.addActionListener(e -> {
-            Rs2Antiban.resetAntibanSettings(true);
+            Rs2Antiban.resetAntibanSettings();
             loadSettings();
         });
     }

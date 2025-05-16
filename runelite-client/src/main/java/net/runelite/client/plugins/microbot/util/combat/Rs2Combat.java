@@ -182,6 +182,8 @@ public class Rs2Combat {
      * @return the effective attack range in tiles (minimum of {@code 1})
      */
     public static int getAttackRange(boolean includeManualCast, boolean includeSpecialAttack) {
+        final int attackStyleVarbit = Microbot.getVarbitPlayerValue(VarPlayer.ATTACK_STYLE);
+        final int weaponTypeVarbit = Microbot.getVarbitValue(Varbits.EQUIPPED_WEAPON_TYPE);
         final Rs2ItemModel equippedWeapon = Rs2Equipment.get(EquipmentInventorySlot.WEAPON);
         final Map<Integer, Weapon> weaponsMap = WeaponsGenerator.generate();
 
@@ -190,7 +192,7 @@ public class Rs2Combat {
         }
 
         Weapon weapon = weaponsMap.get(equippedWeapon.getId());
-        String attackStyle = getWeaponAttackStyle();
+        String attackStyle = getWeaponAttackStyle(attackStyleVarbit, weaponTypeVarbit);
 
         int unmodifiedRange;
         if (weapon instanceof ManualCastable) {
@@ -219,11 +221,11 @@ public class Rs2Combat {
      * <p>
      * It looks up the weapon-styles enum to map varbit indices to style names.
      *
+     * @param attackStyleVarbit the varbit index representing the chosen attack style
+     * @param weaponTypeVarbit  the varbit index representing the equipped weapon type
      * @return the human-readable attack style name (e.g., "Slash", "Magic")
      */
-    public static String getWeaponAttackStyle() {
-        final int attackStyleVarbit = Microbot.getVarbitPlayerValue(VarPlayer.ATTACK_STYLE);
-        final int weaponTypeVarbit = Microbot.getVarbitValue(Varbits.EQUIPPED_WEAPON_TYPE);
+    private static String getWeaponAttackStyle(Integer attackStyleVarbit, Integer weaponTypeVarbit) {
         int weaponStyleEnum = Microbot.getEnum(EnumID.WEAPON_STYLES).getIntValue(weaponTypeVarbit);
         int[] weaponStyleStructs = Microbot.getEnum(weaponStyleEnum).getIntVals();
         StructComposition attackStylesStruct = Microbot.getStructComposition(weaponStyleStructs[attackStyleVarbit]);

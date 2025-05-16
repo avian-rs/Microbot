@@ -404,9 +404,7 @@ public class BankTagsPlugin extends Plugin implements BankTagsService
 	public void onMenuEntryAdded(MenuEntryAdded event)
 	{
 		if (event.getActionParam1() == InterfaceID.Bankmain.ITEMS
-			&& (event.getOption().equals("Examine")
-			// Potion storage has no Examine
-			|| (event.getOption().equals("Withdraw-All-but-1") && !client.getItemContainer(InventoryID.BANK).contains(event.getItemId()))))
+			&& event.getOption().equals("Examine"))
 		{
 			Widget container = client.getWidget(InterfaceID.Bankmain.ITEMS);
 			Widget item = container.getChild(event.getActionParam0());
@@ -424,8 +422,7 @@ public class BankTagsPlugin extends Plugin implements BankTagsService
 				text += " (" + tagCount + ")";
 			}
 
-			int index = event.getOption().equals("Examine") ? -1 : -2;
-			client.createMenuEntry(index)
+			client.createMenuEntry(-1)
 				.setParam0(event.getActionParam0())
 				.setParam1(event.getActionParam1())
 				.setTarget(event.getTarget())

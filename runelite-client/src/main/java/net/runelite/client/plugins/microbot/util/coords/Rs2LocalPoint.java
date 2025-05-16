@@ -1,6 +1,5 @@
 package net.runelite.client.plugins.microbot.util.coords;
 
-import net.runelite.api.Perspective;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.plugins.microbot.Microbot;
@@ -78,13 +77,5 @@ public class Rs2LocalPoint {
                 return new WorldPoint(chunkX + (CHUNK_SIZE - 1 - y), chunkY + x, point.getPlane());
         }
         return point;
-    }
-
-    public static Integer worldToLocalDistance(int distance) {
-        return distance * Perspective.LOCAL_TILE_SIZE;
-    }
-
-    public static Integer localToWorldDistance(int distance) {
-        return distance / Perspective.LOCAL_TILE_SIZE;
     }
 }
