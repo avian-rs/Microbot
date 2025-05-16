@@ -104,7 +104,8 @@ public class MiningPlugin extends Plugin
 	private final List<RockRespawn> respawns = new ArrayList<>();
 
 	@Getter
-	private boolean isMining;
+	@Nullable
+	private Pickaxe pickaxe;
 
 	@Getter(AccessLevel.PACKAGE)
 	private Instant lastAnimationChange;
@@ -129,7 +130,7 @@ public class MiningPlugin extends Plugin
 	protected void shutDown() throws Exception
 	{
 		session = null;
-		isMining = false;
+		pickaxe = null;
 		overlayManager.remove(overlay);
 		overlayManager.remove(rocksOverlay);
 		respawns.forEach(respawn -> clearHintArrowAt(respawn.getWorldPoint()));
@@ -175,7 +176,11 @@ public class MiningPlugin extends Plugin
 		}
 		else
 		{
-			isMining |= MiningAnimation.MINING_ANIMATIONS.contains(animId);
+			Pickaxe pickaxe = Pickaxe.fromAnimation(animId);
+			if (pickaxe != null)
+			{
+				this.pickaxe = pickaxe;
+			}
 		}
 	}
 
@@ -189,7 +194,7 @@ public class MiningPlugin extends Plugin
 			return;
 		}
 
-		if (isMining && MiningAnimation.MINING_ANIMATIONS.contains(client.getLocalPlayer().getAnimation()))
+		if (pickaxe != null && pickaxe.matchesMiningAnimation(client.getLocalPlayer()))
 		{
 			session.setLastMined();
 			return;
@@ -225,7 +230,7 @@ public class MiningPlugin extends Plugin
 	public void resetSession()
 	{
 		session = null;
-		isMining = false;
+		pickaxe = null;
 	}
 
 	@Subscribe

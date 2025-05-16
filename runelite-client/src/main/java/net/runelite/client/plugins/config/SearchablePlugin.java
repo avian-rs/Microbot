@@ -36,9 +36,4 @@ public interface SearchablePlugin
 	{
 		return false;
 	}
-
-	default int installs()
-	{
-		return 0;
-	}
 }

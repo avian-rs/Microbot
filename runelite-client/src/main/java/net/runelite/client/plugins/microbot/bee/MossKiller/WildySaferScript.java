@@ -1,16 +1,11 @@
 package net.runelite.client.plugins.microbot.bee.MossKiller;
 
 import net.runelite.api.Client;
-import net.runelite.api.Player;
 import net.runelite.api.coords.WorldArea;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.plugins.microbot.Script;
-import net.runelite.client.plugins.microbot.util.antiban.Rs2AntibanSettings;
-import net.runelite.client.plugins.microbot.util.antiban.Rs2Antiban;
 import net.runelite.client.plugins.microbot.util.bank.Rs2Bank;
-import net.runelite.client.plugins.microbot.util.antiban.enums.ActivityIntensity;
-import net.runelite.client.plugins.microbot.util.bank.enums.BankLocation;
 import net.runelite.client.plugins.microbot.util.camera.Rs2Camera;
 import net.runelite.client.plugins.microbot.util.combat.Rs2Combat;
 import net.runelite.client.plugins.microbot.util.equipment.Rs2Equipment;
@@ -22,7 +17,6 @@ import net.runelite.client.plugins.microbot.util.models.RS2Item;
 import net.runelite.client.plugins.microbot.util.npc.Rs2Npc;
 import net.runelite.client.plugins.microbot.util.npc.Rs2NpcModel;
 import net.runelite.client.plugins.microbot.util.player.Rs2Player;
-import net.runelite.client.plugins.microbot.util.player.Rs2PlayerModel;
 import net.runelite.client.plugins.microbot.util.security.Login;
 
 import javax.inject.Inject;
@@ -40,7 +34,6 @@ import static net.runelite.client.plugins.microbot.bee.MossKiller.Enums.AttackSt
 import static net.runelite.client.plugins.microbot.util.npc.Rs2Npc.getNpcs;
 import static net.runelite.client.plugins.microbot.util.walker.Rs2Walker.walkFastCanvas;
 import static net.runelite.client.plugins.microbot.util.walker.Rs2Walker.walkTo;
-import static net.runelite.api.Skill.WOODCUTTING;
 
 public class WildySaferScript extends Script {
     
@@ -73,7 +66,6 @@ public class WildySaferScript extends Script {
     public static final WorldPoint SAFESPOT = new WorldPoint(3137, 3833, 0);
     public static final WorldPoint SAFESPOT1 = new WorldPoint(3137, 3831, 0);
 
-    public boolean fired = false;
     public boolean move = false;
     public boolean safeSpot1Attack = false;
     public boolean iveMoved = false;
@@ -83,20 +75,11 @@ public class WildySaferScript extends Script {
     public static boolean test = false;
     public boolean run(MossKillerConfig config) {
         Microbot.enableAutoRunOn = false;
-        Rs2AntibanSettings.naturalMouse = true;
-        Rs2AntibanSettings.simulateMistakes = true;
-        Rs2Antiban.setActivityIntensity(ActivityIntensity.MODERATE);
         mainScheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() -> {
             try {
                 if (!Microbot.isLoggedIn()) return;
                 if (!super.run()) return;
                 long startTime = System.currentTimeMillis();
-
-                if (mossKillerPlugin.startedFromScheduler) {prepareSchedulerStart();
-                    mossKillerPlugin.startedFromScheduler = false;}
-
-                if (mossKillerPlugin.preparingForShutdown) {
-                    MossKillerScript.prepareSoftStop();}
 
                 //if you're at moss giants and your inventory is not prepared, prepare inventory
                 if (isInMossGiantArea() && !isInventoryPreparedMage()) {
@@ -135,7 +118,7 @@ public class WildySaferScript extends Script {
                 }
 
                 // If at safe area of moss giants and there is items to loot, loot them
-                if (isInMossGiantArea() && itemsToLoot() && !isAnyMossGiantInteractingWithMe()) {
+                if (isInMossGiantArea() && itemsToLoot()) {
                     lootItems();
                     if (config.attackStyle() == RANGE && Rs2Inventory.contains(MITHRIL_ARROW)) {
                         System.out.println("getting here?");
@@ -164,11 +147,6 @@ public class WildySaferScript extends Script {
                 }
                 //if using magic make sure staff you have a staff in your possesion
                 if (config.attackStyle() == MAGIC && !Rs2Equipment.isWearing(STAFF_OF_FIRE) && !Rs2Inventory.contains(STAFF_OF_FIRE)) {
-                    doBankingLogic();
-                }
-
-                Rs2Player.eatAt(70);
-                if (Rs2Inventory.contains(MOSSY_KEY)) {
                     doBankingLogic();
                 }
 
@@ -230,28 +208,6 @@ public class WildySaferScript extends Script {
 
         return config.attackStyle() == RANGE && Rs2Equipment.isEquipped(MAPLE_SHORTBOW, WEAPON) && Rs2Equipment.isEquipped(MITHRIL_ARROW, AMMO);
     }
-
-    int interactingTicks = 0;
-
-    public void checkCombatAndRunToBank() {
-        if (Rs2Player.isInCombat()) {
-            Player localPlayer = Rs2Player.getLocalPlayer();
-            for (Rs2PlayerModel p : Rs2Player.getPlayersInCombatLevelRange()) {
-                if (p != null && p != localPlayer && p.getInteracting() == localPlayer) {
-                    interactingTicks++;
-                    break;
-                }
-            }
-
-            if (interactingTicks > 3) {
-                Rs2Bank.walkToBank();
-                fired = true;
-            }
-        } else {
-            interactingTicks = 0; // reset if not in combat
-        }
-    }
-
 
     private boolean isInMossGiantArea() {
         return SAFE_ZONE_AREA.contains(Rs2Player.getWorldLocation());
@@ -467,7 +423,6 @@ public class WildySaferScript extends Script {
                 }
             }
         }
-        sleep(400,900);
     }
 
     private boolean desired2093Exists() {
@@ -491,12 +446,10 @@ public class WildySaferScript extends Script {
 
         if (config.attackStyle() == RANGE) {
             if (Rs2Bank.isOpen()) {
-                Rs2Bank.depositAll();
-            }
+                Rs2Bank.depositAll();}
 
             if (!Rs2Bank.isOpen()) {
-                Rs2Bank.walkToBank();
-                Rs2Bank.walkToBankAndUseBank();
+                Rs2Bank.useBank();
                 if (!Rs2Bank.isOpen()) {
                 Rs2Equipment.unEquip(AMMO);
                 Rs2Bank.walkToBankAndUseBank();
@@ -508,7 +461,6 @@ public class WildySaferScript extends Script {
 
         if (config.attackStyle() == MAGIC && !Rs2Bank.isOpen()) {
 
-            Rs2Bank.walkToBank();
             Rs2Bank.walkToBankAndUseBank();
             sleep(1000);
             return;
@@ -516,7 +468,6 @@ public class WildySaferScript extends Script {
 
 
         if (config.attackStyle() == RANGE && !Rs2Bank.isOpen()) {
-            Rs2Bank.walkToBank();
             Rs2Bank.walkToBankAndUseBank();
             sleep(800,1900);
             if (Rs2Bank.openBank()){
@@ -531,14 +482,11 @@ public class WildySaferScript extends Script {
         }
         }
         if (config.attackStyle() == MAGIC) {
-            Rs2Bank.walkToBank();
-            Rs2Bank.walkToBankAndUseBank();
+            Rs2Bank.openBank();
             sleepUntil(Rs2Bank::isOpen, 15000);
-            if (!Rs2Bank.isOpen()) {
-                Rs2Bank.openBank();
-                System.out.println("called to open bank twice");
-                sleepUntil(Rs2Bank::isOpen);
-            }// Check if required consumables exist in the bank with the correct amounts
+            if (!Rs2Bank.isOpen()) {Rs2Bank.openBank();
+            System.out.println("called to open bank twice");
+            sleepUntil(Rs2Bank::isOpen);}// Check if required consumables exist in the bank with the correct amounts
             if (Rs2Bank.isOpen() && Rs2Bank.count(APPLE_PIE) < 16 ||
                     Rs2Bank.count(MIND_RUNE) < 750 ||
                     Rs2Bank.count(AIR_RUNE) < 1550 ||
@@ -547,8 +495,7 @@ public class WildySaferScript extends Script {
                 Microbot.log("Missing required consumables in the bank. Shutting down script.");
                 shutdown(); // Stop script
                 return;
-            }
-        }
+            } }
 
         // Deposit all items
         Rs2Bank.depositAll();
@@ -615,22 +562,12 @@ public class WildySaferScript extends Script {
                     sleepUntil(() -> Rs2Equipment.isWearing(itemId), 5000);
                 }
             }
+        }
 
         Rs2Bank.withdrawX(MITHRIL_ARROW, config.mithrilArrowAmount());
         sleep(400,800);
         Rs2Inventory.equip(MITHRIL_ARROW);
         sleep(300);
-
-        }
-
-
-        if (config.alchLoot()) {Rs2Bank.withdrawX(NATURE_RUNE, 10);
-            if (config.attackStyle() == RANGE) Rs2Bank.withdrawX(FIRE_RUNE,50);}
-
-    
-        if (Microbot.getClient().getRealSkillLevel(WOODCUTTING) > 56 && Rs2Player.getWorldLocation().getY() < 3520) {
-            Rs2Bank.withdrawOne("axe", false);
-        }
 
         Rs2Bank.closeBank();
     }
@@ -660,16 +597,6 @@ public class WildySaferScript extends Script {
                 && Rs2Equipment.hasEquipped(LEATHER_VAMBRACES);
     }
 
-    private void prepareSchedulerStart() {
-            Rs2Bank.walkToBank();
-            Rs2Bank.openBank();
-            sleepUntil(Rs2Bank::isOpen);
-            Rs2Bank.depositAll();
-            Rs2Bank.depositEquipment();
-            Rs2Bank.closeBank();
-            Rs2Bank.walkToBank(BankLocation.FEROX_ENCLAVE);
-    }
-
     private boolean isInventoryPreparedMage() {
         return Rs2Inventory.hasItemAmount(MIND_RUNE, 15) &&
                 Rs2Inventory.hasItemAmount(AIR_RUNE, 30) &&
@@ -683,7 +610,6 @@ public class WildySaferScript extends Script {
     @Override
     public void shutdown() {
         super.shutdown();
-        fired = false;
         move = false;
         iveMoved = false;
     }

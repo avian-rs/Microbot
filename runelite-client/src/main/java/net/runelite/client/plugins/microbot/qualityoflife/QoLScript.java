@@ -114,7 +114,7 @@ public class QoLScript extends Script {
 
     // handle auto eat
     private void handleAutoEat(int percent) {
-        Rs2Player.eatAt(percent, true);
+        Rs2Player.eatAt(percent);
     }
 
     private void handleAutoDrinkPrayPot(int points) {
