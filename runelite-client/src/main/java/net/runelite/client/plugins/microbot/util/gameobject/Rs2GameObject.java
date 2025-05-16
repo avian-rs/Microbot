@@ -23,6 +23,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static net.runelite.api.NullObjectID.NULL_34810;
+import static net.runelite.api.ObjectID.BEAM_42220;
+import static net.runelite.api.ObjectID.MARKET_STALL_14936;
 import static net.runelite.client.plugins.microbot.util.Global.sleepUntil;
 
 /**
@@ -772,10 +774,10 @@ public static GameObject findReachableObject(String objectName, boolean exact, i
                 continue;
 
             //exceptions if the pathsize needs to be bigger
-            if (object.getId() == ObjectID.MARKET_STALL_14936) {
+            if (object.getId() == MARKET_STALL_14936) {
                 if (object instanceof GameObject && !Rs2Walker.canReach(object.getWorldLocation(), ((GameObject) object).sizeX(), ((GameObject) object).sizeY(), 4, 4))
                     continue;
-            } else if (object.getId() == ObjectID.BEAM_42220) {
+            } else if (object.getId() == BEAM_42220) {
                 if (object.getWorldLocation().distanceTo(Rs2Player.getWorldLocation()) > 6)
                     continue;
             } else {

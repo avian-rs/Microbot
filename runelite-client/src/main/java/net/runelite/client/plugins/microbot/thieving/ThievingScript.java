@@ -269,8 +269,8 @@ public class ThievingScript extends Script {
      */
     private void fastClickDelay() {
         double r = Math.random();
-        if (r < 0.78) sleepGaussian(84, 18);
-        else if (r < 0.88) sleepGaussian(118, 30);
+        if (r < 0.78) sleepGaussian(78, 18);
+        else if (r < 0.95) sleepGaussian(110, 30);
         else sleepGaussian(200, 50);
     }
 
@@ -285,7 +285,7 @@ public class ThievingScript extends Script {
     private void attemptPickpocket(NPC npc) {
         if (npc == null) return;
         if (doorInTheWay(npc) && !ensureDoorOpen()) return;
-        if (!Rs2Magic.isShadowVeilActive() && !Rs2Bank.isOpen() && TARGET_TILES.contains(Microbot.getClient().getLocalPlayer().getWorldLocation())) {
+        if (!Rs2Magic.isShadowVeilActive() && !Rs2Bank.isOpen()) {
             handleShadowVeil();
             sleepGaussian(150, 50);
         }
